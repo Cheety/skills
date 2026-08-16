@@ -44,6 +44,11 @@ jobs:
               --fixtures "$A/stacks/$p/fixtures"
           done
 
+      - name: Roadmap rules still catch their planted violations
+        run: |
+          A=skills/setup-cheety-skills/assets
+          python3 "$A/tools/skill-eval/roadmap_check.py" --self-test
+
       - name: A fresh install works end to end
         run: |
           for p in laravel typescript python; do

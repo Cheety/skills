@@ -1,9 +1,9 @@
 # Stack-neutral entry point. Set PROFILE per repository.
 PROFILE ?= laravel
 
-.PHONY: pruefe arch arch-eval alle-profile zyklus-pruefung forge skill-eval
+.PHONY: pruefe arch arch-eval alle-profile zyklus-pruefung forge skill-eval roadmap roadmap-eval
 
-pruefe: arch arch-eval skill-eval forge     ## Full harness check
+pruefe: arch arch-eval skill-eval roadmap-eval roadmap forge  ## Full harness check
 
 arch:                                       ## Principle rules against the application code
 	python3 tools/arch-check/arch_check.py . --profile $(PROFILE)
@@ -26,3 +26,9 @@ forge:                                      ## forge configuration against its o
 
 skill-eval:                                 ## Issue rubric
 	python3 tools/skill-eval/rubric.py tools/skill-eval/results/issues
+
+roadmap:                                    ## Milestone plans — dependencies, order, backlog rows
+	python3 tools/skill-eval/roadmap_check.py $(or $(ROADMAP),docs/roadmap)
+
+roadmap-eval:                               ## Self-test the roadmap rules against their fixtures
+	python3 tools/skill-eval/roadmap_check.py --self-test

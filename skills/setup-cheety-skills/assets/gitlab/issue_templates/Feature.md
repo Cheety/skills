@@ -37,9 +37,11 @@ Pflichtfeld. Frage dich: Was wuerde ein fleissiges Modell hier zusaetzlich bauen
 ## Kontext
 
 ```
+Meilenstein:   
 Betroffen:     
 Stil-Vorbild:  
 Verwandt:      #
+Blockiert von: #
 ```
 
 ## Groesse

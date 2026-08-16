@@ -183,6 +183,50 @@ rubric does not ask them for one.
 
 ---
 
+## 2.6 Above the slice — milestones
+
+An undertaking that arrives as a **document** — an architecture paper, a concept,
+a phase plan — is not an issue and does not become one by being split. It gets a
+milestone plan first:
+
+```
+Spec  ──►  Milestone  ──►  Issue  ──►  Pull request
+```
+
+Skipping the middle step is the common failure and it is invisible for weeks. The
+issues come out fine; what is lost is the **ordering** — which system has to
+exist before which, and what breaks when that order is violated. An issue has no
+field for that. `Verwandt: #142` is a hyperlink, not a constraint.
+
+| Level | Answers | Bounded by | Lives in |
+|---|---|---|---|
+| **Spec** | what are we building | nothing | `docs/specs/` |
+| **Milestone** | in which order, and what blocks what | a Definition of Done | `docs/roadmap/` |
+| **Issue** | what do I do in this session | `S` or `M` | the tracker |
+| **Pull request** | what gets reviewed together | 400 lines, 8 files | the forge |
+
+The milestone plan is a **file in the repository**, not an issue: issues get
+closed, and the build order has to still be readable in month four. It is checked
+mechanically — dangling references, cycles, and milestones written in an order
+nobody could build in:
+
+```bash
+python3 tools/skill-eval/roadmap_check.py docs/roadmap
+```
+
+A milestone is not a slice. It is a container with an ordering, and it may be
+entirely horizontal — the slice question is asked one level down, of the issues
+inside it. Two rules follow from that and both matter:
+
+- **Every new dependency gets its own `chore` issue** in the earliest milestone
+  that needs it (§5). Decided once, at the front — otherwise the plan step
+  refuses twenty issues in a row for the same reason and people start ignoring it.
+- **Issues are written for the current milestone only.** Issues for milestone 8
+  anchor on paths that do not exist yet, and they are written against a design
+  the early milestones exist to disprove.
+
+---
+
 ## 3. Tests
 
 **The human states the property, the model writes the test.** Never both in one
