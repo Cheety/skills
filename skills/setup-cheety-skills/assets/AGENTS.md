@@ -353,8 +353,10 @@ implementation session reads. Planning and building are two sessions.
 better context, possibly a human. Models dig in and produce more workarounds with
 every further attempt.
 
-**Ask when unclear, do not assume.** A question costs a minute. An invented
-requirement costs a review round and then lives on in the code.
+**Facts are looked up, decisions are asked.** Digging out how the code behaves is
+the model's job; choosing between workable designs is the human's, and `make-plan`
+puts those in one round before it writes anything. A question costs a minute. An
+invented requirement costs a review round and then lives on in the code.
 
 **Not touched without explicit human instruction:** authentication, authorization,
 payment handling, data migrations, configuration structure, CI, this file.
