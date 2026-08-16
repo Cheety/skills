@@ -28,8 +28,8 @@ the issue leaves open is one of two things, and they are handled differently:
 
 | Kind | Whose job |
 |---|---|
-| **Fact** — how the code, the package, the schema actually behaves | Yours. Read the source, unpack the package, run the query. Look it up rather than asking. |
-| **Decision** — which of several workable designs this project wants | The human's. Ask it before planning around it. |
+| **Fact** — how the code, the package, the schema actually behaves | Yours. Read the source, unpack the package, run the query. |
+| **Decision** — which of several workable designs this project wants | The human's. Put it to them before planning around it. |
 
 Reading the issue produces a **frontier**: every decision whose prerequisites are
 already settled — the ones answerable now, without guessing at answers you have
@@ -38,53 +38,37 @@ recommended answer, and wait:
 
 ```
 ❓ **F1 — Modul-Abhängigkeiten zusammenführen?**
-   Das Paket bringt das Merge-Plugin mit. Abschalten heißt: Module werden über
-   psr-4 in der Wurzel geladen, was die Verzeichnisform der Module festlegt —
-   eine Vorentscheidung für #22.
+   Abschalten heißt: Module werden über psr-4 in der Wurzel geladen, was die
+   Verzeichnisform der Module festlegt — eine Vorentscheidung für #22.
 ➡️ Empfehlung: abschalten, weil ADR-0001 genau das entschieden hat.
-
-❓ **F2 — Zählt der Konfigurationsnachweis als Beleg für AK 3?**
-   Ein echter Auflösungslauf braucht Netz und Minuten in der Prüfkette.
-➡️ Empfehlung: ja, Konfigurationsnachweis, und die Grenze im PR benennen.
 ```
 
 A question whose answer depends on another question in the same round belongs to
 the **next** round. Two rounds is the normal maximum for an `S` or `M` issue; a
 third means the issue is not ready — say so and go back to `write-issue`.
 
-The round is done when the frontier is empty: every open decision put to the
-human, nothing left silently assumed. Answers go into `## Annahmen` marked
-`← geklärt in Rückfrage`, so the ticket shows what was decided rather than
-guessed.
+The round is done when every entry of the issue's `## Offene Fragen` has an
+answer and the frontier below them is empty. Answers go into `## Annahmen`
+marked `← geklärt in Rückfrage`, so the ticket shows what was decided rather
+than guessed.
 
-### Which uncertainties earn a question
+### Blast radius decides which uncertainty earns a question
 
-Blast radius decides, not the count:
-
-- **The issue's `## Offene Fragen` are unanswered.** They were written for exactly
-  this moment. Carrying one into the plan as "bleibt offen" hands it to the
-  implementation session, where it gets answered by whoever types fastest.
+- **An entry under `## Offene Fragen`.** It was written for exactly this moment.
+  Carried into the plan as "bleibt offen", it reaches the implementation session,
+  where it gets answered by whoever types fastest.
 - **The answer changes `Betroffene Dateien`, `Schrittfolge` or `Testplan`.**
 - **The answer reaches past this issue** — a later issue, another milestone, a
   public interface, a directory layout somebody else will build against. This is
-  the one that hides: locally it looks like a one-line config choice, and it is
-  the design of next week's issue.
+  the radius that hides: locally a one-line config choice, actually the design of
+  next week's issue.
 - **The answer decides what counts as proof** for an acceptance criterion.
 
-An uncertainty whose two answers produce the same plan is not a question. Record
-it as an assumption and keep going.
+Zero radius — both answers produce the same plan — is no question. Record it as
+an assumption and keep going.
 
-### Why a count is the wrong bar
-
-"More than two uncertain assumptions" is a threshold, and a threshold has a dead
-zone underneath it: one or two uncertainties ship silently, which is precisely
-the range where a question is cheapest. Worse, the count is on the wrong axis —
-a single assumption that fixes the module layout for three later issues outweighs
-five that only affect a variable name. Ask by blast radius, and let the count
-decide only whether the **issue** is ready at all.
-
-Presenting a finished plan and asking "confirm these two assumptions?" is not
-this round. It is a yes/no on a design the human never got to shape, at the point
+Handing over a finished plan with "confirm these two assumptions?" is not this
+round. It is a yes/no on a design the human never got to shape, at the point
 where changing anything means rewriting the plan.
 
 ## Structure of the plan
@@ -122,10 +106,9 @@ before they are code. List everything the issue does not answer but you need:
 ```
 
 Three provenances, and the marking shows which is which: answered in the question
-round, read out of the code, or still uncertain. An uncertainty that survives the
-round is one whose answer would not have changed the plan — anything else was a
-question. With more than two of them left: the issue is not ready. Say so and go
-back to `write-issue` instead of building.
+round, read out of the code, or still uncertain. What survives the round is what
+blast radius did not reach. With more than two of those left, the issue is not
+ready: say so and go back to `write-issue`.
 
 ### 3. Affected files
 
