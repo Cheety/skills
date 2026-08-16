@@ -1,6 +1,6 @@
 ---
 name: make-plan
-description: Produces a verifiable implementation plan with affected files, step sequence, stated assumptions and an explicit out-of-scope list, then files the confirmed plan on the issue as the hand-off to implementation. Use this skill as the mandatory first step for every issue, bug fix, refactor and larger change — including when somebody says "just implement X", "build me Y" or "fix that". It ends at the hand-off; the code is written in a separate session with the skill `implement-feature`.
+description: Puts the issue's open decisions to the human first, then produces a verifiable implementation plan with affected files, step sequence, stated assumptions and an explicit out-of-scope list, and files the confirmed plan on the issue as the hand-off to implementation. Use this skill as the mandatory first step for every issue, bug fix, refactor and larger change — including when somebody says "just implement X", "build me Y" or "fix that". It ends at the hand-off; the code is written in a separate session with the skill `implement-feature`.
 ---
 
 # Make a plan
@@ -20,6 +20,72 @@ a dead end.
 **This skill ends at the hand-off.** It produces one artifact — the plan — and
 files it on the ticket once a human confirms it. The code belongs to the next
 session; see *After confirmation* below.
+
+## Before the plan — the question round
+
+The questions come **first**, and the plan is written around their answers. What
+the issue leaves open is one of two things, and they are handled differently:
+
+| Kind | Whose job |
+|---|---|
+| **Fact** — how the code, the package, the schema actually behaves | Yours. Read the source, unpack the package, run the query. Look it up rather than asking. |
+| **Decision** — which of several workable designs this project wants | The human's. Ask it before planning around it. |
+
+Reading the issue produces a **frontier**: every decision whose prerequisites are
+already settled — the ones answerable now, without guessing at answers you have
+not heard yet. Ask the whole frontier in one round, numbered, each with your
+recommended answer, and wait:
+
+```
+❓ **F1 — Modul-Abhängigkeiten zusammenführen?**
+   Das Paket bringt das Merge-Plugin mit. Abschalten heißt: Module werden über
+   psr-4 in der Wurzel geladen, was die Verzeichnisform der Module festlegt —
+   eine Vorentscheidung für #22.
+➡️ Empfehlung: abschalten, weil ADR-0001 genau das entschieden hat.
+
+❓ **F2 — Zählt der Konfigurationsnachweis als Beleg für AK 3?**
+   Ein echter Auflösungslauf braucht Netz und Minuten in der Prüfkette.
+➡️ Empfehlung: ja, Konfigurationsnachweis, und die Grenze im PR benennen.
+```
+
+A question whose answer depends on another question in the same round belongs to
+the **next** round. Two rounds is the normal maximum for an `S` or `M` issue; a
+third means the issue is not ready — say so and go back to `write-issue`.
+
+The round is done when the frontier is empty: every open decision put to the
+human, nothing left silently assumed. Answers go into `## Annahmen` marked
+`← geklärt in Rückfrage`, so the ticket shows what was decided rather than
+guessed.
+
+### Which uncertainties earn a question
+
+Blast radius decides, not the count:
+
+- **The issue's `## Offene Fragen` are unanswered.** They were written for exactly
+  this moment. Carrying one into the plan as "bleibt offen" hands it to the
+  implementation session, where it gets answered by whoever types fastest.
+- **The answer changes `Betroffene Dateien`, `Schrittfolge` or `Testplan`.**
+- **The answer reaches past this issue** — a later issue, another milestone, a
+  public interface, a directory layout somebody else will build against. This is
+  the one that hides: locally it looks like a one-line config choice, and it is
+  the design of next week's issue.
+- **The answer decides what counts as proof** for an acceptance criterion.
+
+An uncertainty whose two answers produce the same plan is not a question. Record
+it as an assumption and keep going.
+
+### Why a count is the wrong bar
+
+"More than two uncertain assumptions" is a threshold, and a threshold has a dead
+zone underneath it: one or two uncertainties ship silently, which is precisely
+the range where a question is cheapest. Worse, the count is on the wrong axis —
+a single assumption that fixes the module layout for three later issues outweighs
+five that only affect a variable name. Ask by blast radius, and let the count
+decide only whether the **issue** is ready at all.
+
+Presenting a finished plan and asking "confirm these two assumptions?" is not
+this round. It is a yes/no on a design the human never got to shape, at the point
+where changing anything means rewriting the plan.
 
 ## Structure of the plan
 
@@ -49,13 +115,17 @@ before they are code. List everything the issue does not answer but you need:
 
 ```
 ## Annahmen
-- Die Frist wird in der Zeitzone des Nutzers gerechnet, nicht in UTC   ← unsicher
+- Die Frist wird in der Zeitzone des Nutzers gerechnet   ← geklärt in Rückfrage (F1)
 - `Rechnung::betrag` liegt in Cent (aus Migration 2024_03_11 gelesen)
 - Ein Job-Retry von 3 Versuchen existiert bereits (Queue-Konfiguration)
+- Die Mahnstufe zählt pro Rechnung, nicht pro Kunde                    ← unsicher
 ```
 
-Mark uncertain assumptions explicitly. With more than two uncertain assumptions:
-**abort the plan and ask** instead of building.
+Three provenances, and the marking shows which is which: answered in the question
+round, read out of the code, or still uncertain. An uncertainty that survives the
+round is one whose answer would not have changed the plan — anything else was a
+question. With more than two of them left: the issue is not ready. Say so and go
+back to `write-issue` instead of building.
 
 ### 3. Affected files
 
@@ -149,7 +219,8 @@ One number. It is compared against the actual diff in review and by
 
 Abort and ask instead of delivering a plan when:
 
-- More than two uncertain assumptions are required
+- More than two uncertain assumptions survive the question round
+- The frontier is still not empty after two rounds
 - The issue has no acceptance criteria or no non-goals
 - The work would need a new dependency
 - Authentication, authorization, payments or data migration are affected without
