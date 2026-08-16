@@ -1,0 +1,64 @@
+# Checks the harness itself: rules, principle coverage, forge configuration,
+# issue rubric. Independent of the project stack; needs nothing but Python.
+name: Harness
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Unlike Forgejo, GitHub does not cancel superseded runs on its own. Without
+# this block every push to a branch keeps its predecessor running.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  selftest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Every profile that is actually installed, rather than a hard-coded list:
+      # the installer writes only the stack you chose.
+      - name: Self-test the rules of each installed profile
+        run: |
+          set -e
+          for f in tools/arch-check/profiles/*.json; do
+            p=$(basename "$f" .json)
+            echo "── profile $p ──"
+            python3 tools/arch-check/eval.py --profile "$p"
+          done
+
+      - name: Check principle coverage
+        run: |
+          set -e
+          for f in tools/arch-check/profiles/*.json; do
+            p=$(basename "$f" .json)
+            python3 tools/arch-check/arch_check.py . --profile "$p" --coverage
+          done
+
+      - name: Check the forge configuration
+        run: |
+          pip install --quiet pyyaml
+          python3 tools/forge_check.py .
+
+      - name: Issue rubric
+        run: |
+          set -e
+          for d in tools/skill-eval/results/issues*/; do
+            [ -d "$d" ] || continue
+            if ls "$d"*.md >/dev/null 2>&1; then
+              python3 tools/skill-eval/rubric.py "$d"
+            else
+              for u in "$d"*/; do
+                [ -d "$u" ] && python3 tools/skill-eval/rubric.py "$u"
+              done
+            fi
+          done

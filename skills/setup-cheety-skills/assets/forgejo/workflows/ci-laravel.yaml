@@ -1,0 +1,98 @@
+# Check chain for a Laravel project. To port it to another stack, replace
+# steps 1, 2 and 6 with the ones from profiles/<stack>/PROFILE.md; steps 3
+# to 5 stay the same.
+name: CI Laravel
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+env:
+  STACK_PROFILE: laravel
+
+jobs:
+  pruefe:
+    runs-on: docker
+    timeout-minutes: 15
+
+    # Real Postgres, not SQLite. A test against SQLite proves nothing about
+    # production: transactions, JSON columns, locking and constraint names all
+    # behave differently.
+    #
+    # services: requires a runner with Docker access. Where the runner has no
+    # Docker, use a container: block with Postgres preinstalled, or start the
+    # database inside the step.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: testing
+          POSTGRES_USER: testing
+          POSTGRES_PASSWORD: testing
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-retries 5
+
+    steps:
+      - uses: https://data.forgejo.org/actions/checkout@v4
+
+      # Third-party actions do not live on data.forgejo.org. Give the full URL,
+      # otherwise the runner looks for them under DEFAULT_ACTIONS_URL.
+      - name: PHP einrichten
+        uses: https://github.com/shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pgsql, pdo_pgsql, redis, bcmath, intl
+          coverage: none
+
+      - name: Composer-Cache
+        uses: https://data.forgejo.org/actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+
+      - run: composer install --no-interaction --prefer-dist --no-progress
+
+      # Order: cheapest check first, so CI fails early.
+
+      - name: 1 - Formatting
+        run: vendor/bin/pint --test
+
+      - name: 2 - Static analysis
+        run: vendor/bin/phpstan analyse --memory-limit=1G --no-progress
+
+      - name: 3 - Principle rules
+        run: python3 tools/arch-check/arch_check.py . --profile "$STACK_PROFILE"
+
+      - name: 4 - Self-test of the rules
+        run: python3 tools/arch-check/eval.py --profile "$STACK_PROFILE"
+
+      - name: 5 - Issue rubric
+        run: python3 tools/skill-eval/rubric.py tools/skill-eval/results/issues
+
+      - name: 6 - Tests
+        run: vendor/bin/pest
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: postgres      # service name, not 127.0.0.1
+          DB_DATABASE: testing
+          DB_USERNAME: testing
+          DB_PASSWORD: testing
+          REDIS_HOST: redis
+
+      - name: 7 - Dependency audit
+        run: composer audit --abandoned=report
+
+      # Deliberately NO coverage threshold. A percentage target reliably produces
+      # tests without assertions.

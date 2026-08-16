@@ -1,0 +1,65 @@
+# Checks the harness itself: rules, principle coverage, forge configuration,
+# issue rubric. Independent of the project stack; needs nothing but Python.
+name: Harness
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# No concurrency block: with nothing declared, Forgejo already cancels running
+# invocations of the same workflow on push and pull_request.
+
+jobs:
+  selbsttest:
+    # The label must match a registered runner. 'docker' is the default used in
+    # the Forgejo documentation; your instance may use 'self-hosted' or a
+    # label of its own.
+    runs-on: docker
+    container:
+      image: python:3.12-slim
+    timeout-minutes: 10
+
+    steps:
+      # Fully qualified URL rather than the short form: the short form is prefixed
+      # with the instance's DEFAULT_ACTIONS_URL and is therefore not portable.
+      - name: Check out the sources
+        uses: https://data.forgejo.org/actions/checkout@v4
+
+      # Every profile that is actually installed, rather than a hard-coded list:
+      # the installer writes only the stack you chose.
+      - name: Self-test the rules of each installed profile
+        run: |
+          set -e
+          for f in tools/arch-check/profiles/*.json; do
+            p=$(basename "$f" .json)
+            echo "── profile $p ──"
+            python3 tools/arch-check/eval.py --profile "$p"
+          done
+
+      - name: Check principle coverage
+        run: |
+          set -e
+          for f in tools/arch-check/profiles/*.json; do
+            p=$(basename "$f" .json)
+            python3 tools/arch-check/arch_check.py . --profile "$p" --coverage
+          done
+
+      - name: Check the forge configuration
+        run: |
+          pip install --quiet pyyaml
+          python3 tools/forge_check.py .
+
+      - name: Issue rubric
+        run: |
+          set -e
+          for d in tools/skill-eval/results/issues*/; do
+            [ -d "$d" ] || continue
+            if ls "$d"*.md >/dev/null 2>&1; then
+              python3 tools/skill-eval/rubric.py "$d"
+            else
+              for u in "$d"*/; do
+                [ -d "$u" ] && python3 tools/skill-eval/rubric.py "$u"
+              done
+            fi
+          done

@@ -1,0 +1,22 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - phpstan-baseline.neon
+
+parameters:
+    level: 8
+
+    paths:
+        - app
+        - database
+        - routes
+        - tests
+
+    # Error classes Larastan would otherwise let through
+    checkModelProperties: true
+    checkOctaneCompatibility: true
+    checkUninitializedProperties: true
+    reportUnmatchedIgnoredErrors: true
+
+    ignoreErrors: []
+    # Every entry here needs a comment with an issue number.
+    # The baseline file is the legacy debt - it may only shrink.

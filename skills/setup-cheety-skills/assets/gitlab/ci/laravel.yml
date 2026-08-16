@@ -1,0 +1,61 @@
+# Check chain for a Laravel project. To port it to another stack, replace the
+# `image:`, step 1, step 2 and step 6 with the ones from
+# profiles/<stack>/PROFILE.md; steps 3 to 5 stay the same.
+
+check:laravel:
+  stage: test
+  # No ready-made PHP action exists on GitLab — the image carries the toolchain.
+  # A project image built once beats installing extensions on every run.
+  image: php:8.3-cli
+  interruptible: true
+  timeout: 15 minutes
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+  # Real Postgres, not SQLite. A test against SQLite proves nothing about
+  # production: transactions, JSON columns, locking and constraint names all
+  # behave differently. Services are reached under their alias, not localhost.
+  services:
+    - name: postgres:16
+      alias: postgres
+    - name: redis:7
+      alias: redis
+
+  cache:
+    key:
+      files: [composer.lock]
+    paths: [vendor/]
+
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq git unzip libpq-dev python3
+    - docker-php-ext-install pdo_pgsql bcmath
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    - composer install --no-interaction --prefer-dist --no-progress
+
+  # Order: cheapest check first, so the pipeline fails early.
+  script:
+    - vendor/bin/pint --test                                                  # 1 - Formatting
+    - vendor/bin/phpstan analyse --memory-limit=1G --no-progress              # 2 - Static analysis
+    - python3 tools/arch-check/arch_check.py . --profile "$STACK_PROFILE"     # 3 - Principle rules
+    - python3 tools/arch-check/eval.py --profile "$STACK_PROFILE"             # 4 - Self-test of the rules
+    - python3 tools/skill-eval/rubric.py tools/skill-eval/results/issues      # 5 - Issue rubric
+    - vendor/bin/pest                                                         # 6 - Tests
+    - composer audit --abandoned=report                                       # 7 - Dependency audit
+
+  variables:
+    STACK_PROFILE: laravel
+    # The service container reads these too — job variables reach it.
+    POSTGRES_DB: testing
+    POSTGRES_USER: testing
+    POSTGRES_PASSWORD: testing
+    DB_CONNECTION: pgsql
+    DB_HOST: postgres
+    DB_PORT: '5432'
+    DB_DATABASE: testing
+    DB_USERNAME: testing
+    DB_PASSWORD: testing
+    REDIS_HOST: redis
+
+  # Deliberately NO coverage threshold. A percentage target reliably produces
+  # tests without assertions.

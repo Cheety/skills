@@ -1,0 +1,69 @@
+name: Feature
+about: Neues, extern sichtbares Verhalten
+title: '[Feature]: '
+labels:
+  - feature
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: >
+        Die Beobachtung, nicht die Loesung. "Cache invalidieren" ist eine
+        Loesung. "Nach dem Speichern erscheinen kurz die alten Werte" ist ein
+        Problem.
+    validations:
+      required: true
+
+  - type: textarea
+    id: akzeptanz
+    attributes:
+      label: Akzeptanzkriterien
+      description: Jede Zeile muss mit ja oder nein beantwortbar sein, ohne Diskussion.
+      value: |
+        - [ ] 
+        - [ ] 
+    validations:
+      required: true
+
+  - type: textarea
+    id: nichtziele
+    attributes:
+      label: Nicht-Ziele
+      description: >
+        Pflichtfeld. Frage dich: Was wuerde ein fleissiges Modell hier
+        zusaetzlich bauen?
+      placeholder: |
+        - Keine Konfigurierbarkeit der Frist, 14 Tage werden fest kodiert
+        - Keine Mehrsprachigkeit der neuen Texte
+        - Kein Caching, erst wenn gemessen zu langsam
+    validations:
+      required: true
+
+  - type: textarea
+    id: kontext
+    attributes:
+      label: Kontext
+      value: |
+        Betroffen:     
+        Stil-Vorbild:  
+        Verwandt:      #
+    validations:
+      required: true
+
+  - type: dropdown
+    id: groesse
+    attributes:
+      label: Groesse
+      description: L wird nicht bearbeitet, sondern aufgeteilt.
+      options:
+        - S (< 100 Zeilen)
+        - M (< 400 Zeilen)
+    validations:
+      required: true
+
+  - type: textarea
+    id: fragen
+    attributes:
+      label: Offene Fragen
+      description: Muessen vor Umsetzungsbeginn geklaert sein.

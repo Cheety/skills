@@ -1,0 +1,21 @@
+# Root pipeline. GitLab reads exactly one file per project, so everything is
+# assembled here through `include:` — there is no per-workflow file as on
+# GitHub or Forgejo.
+#
+# The installer wrote the include for the stack you chose. Add a second `local:`
+# line if the repository carries more than one stack.
+
+stages:
+  - harness
+  - test
+
+include:
+  - local: '.gitlab/ci/harness.yml'
+__STACK_INCLUDE__
+
+# Merge-request pipelines only, plus the default branch. Without the second
+# rule, a push to main runs nothing; without the first, nothing runs on an MR.
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

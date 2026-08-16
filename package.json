@@ -1,0 +1,13 @@
+{
+  "name": "cheety-skills",
+  "version": "1.0.0",
+  "description": "Engineering harness for LLM-assisted development: eight principles, a language-agnostic rule checker with self-tested rules, and a test-first workflow. Stack profiles for Laravel, TypeScript and Python.",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/cheety/skills.git" },
+  "keywords": ["agent-skills", "claude-code", "codex", "cursor", "architecture", "tdd", "laravel", "typescript", "python"],
+  "scripts": {
+    "install:harness": "node skills/setup-cheety-skills/install.mjs",
+    "check:skills": "python3 scripts/skills_check.py .",
+    "check:forge": "python3 skills/setup-cheety-skills/assets/tools/forge_check.py skills/setup-cheety-skills/assets"
+  }
+}

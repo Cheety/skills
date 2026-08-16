@@ -1,0 +1,40 @@
+# Checks the harness itself: rules, principle coverage, forge configuration,
+# issue rubric. Independent of the project stack; needs nothing but Python.
+#
+# Included from the root .gitlab-ci.yml. GitLab has no per-workflow file — one
+# pipeline per project, assembled through `include:`.
+
+harness:
+  stage: harness
+  image: python:3.12-slim
+  # GitLab does not cancel superseded pipelines unless the job says it may be
+  # interrupted. Combine with "Auto-cancel redundant pipelines" in
+  # Settings → CI/CD → General pipelines.
+  interruptible: true
+  timeout: 10 minutes
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    # Every profile that is actually installed, rather than a hard-coded list:
+    # the installer writes only the stack you chose.
+    - |
+      for f in tools/arch-check/profiles/*.json; do
+        p=$(basename "$f" .json)
+        echo "── profile $p ──"
+        python3 tools/arch-check/eval.py --profile "$p"
+        python3 tools/arch-check/arch_check.py . --profile "$p" --coverage
+      done
+    - pip install --quiet pyyaml
+    - python3 tools/forge_check.py .
+    - |
+      for d in tools/skill-eval/results/issues*/; do
+        [ -d "$d" ] || continue
+        if ls "$d"*.md >/dev/null 2>&1; then
+          python3 tools/skill-eval/rubric.py "$d"
+        else
+          for u in "$d"*/; do
+            [ -d "$u" ] && python3 tools/skill-eval/rubric.py "$u"
+          done
+        fi
+      done

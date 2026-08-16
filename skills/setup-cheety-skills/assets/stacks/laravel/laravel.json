@@ -1,0 +1,347 @@
+{
+  "name": "laravel",
+  "extensions": [
+    ".php"
+  ],
+  "language": {
+    "line_comment": [
+      "//",
+      "#"
+    ],
+    "block_comment": [
+      [
+        "/*",
+        "*/"
+      ]
+    ],
+    "strings": [
+      "'",
+      "\""
+    ]
+  },
+  "ignore": [
+    "**/vendor/**",
+    "**/tools/**",
+    "**/node_modules/**"
+  ],
+  "layers": {
+    "domain": "app/Actions, app/Enums, app/Data, app/Support",
+    "edge": "app/Http, app/Jobs, app/Console",
+    "persistence": "app/Models, database"
+  },
+  "rules": [
+    {
+      "id": "STRICT_TYPES",
+      "principle": "HYGIENE",
+      "message": "declare(strict_types=1) is missing",
+      "applies_to": [
+        "app/**"
+      ],
+      "pattern": "declare\\(strict_types\\s*=\\s*1\\)",
+      "kind": "required"
+    },
+    {
+      "id": "DEBUG_OUTPUT",
+      "principle": "HYGIENE",
+      "message": "debug output {0}() in production code",
+      "applies_to": [
+        "app/**"
+      ],
+      "pattern": "\\b(dd|dump|ray|var_dump|print_r)\\s*\\(",
+      "kind": "forbidden"
+    },
+    {
+      "id": "ENV_OUTSIDE_CONFIG",
+      "principle": "HYGIENE",
+      "message": "env() returns null in production once the config is cached",
+      "applies_to": [
+        "app/**"
+      ],
+      "pattern": "(?<![\\w:>$])env\\s*\\(",
+      "kind": "forbidden"
+    },
+    {
+      "id": "BOUNDARY_ACTION_HTTP",
+      "principle": "BOUNDARIES",
+      "message": "action imports from the HTTP layer",
+      "applies_to": [
+        "app/Actions/**"
+      ],
+      "pattern": "^use\\s+(App\\\\Http|Illuminate\\\\Http)\\\\",
+      "kind": "forbidden"
+    },
+    {
+      "id": "BOUNDARY_ACTION_FACADE",
+      "principle": "BOUNDARIES",
+      "message": "facade {0} inside an action \u2014 inject it instead of calling it statically",
+      "applies_to": [
+        "app/Actions/**"
+      ],
+      "pattern": "^use\\s+Illuminate\\\\Support\\\\Facades\\\\(\\w+)",
+      "kind": "forbidden",
+      "except_values": [
+        "DB",
+        "Log"
+      ]
+    },
+    {
+      "id": "BOUNDARY_MODEL_LOGIC",
+      "principle": "BOUNDARIES",
+      "message": "model imports from Actions/Jobs/Http",
+      "applies_to": [
+        "app/Models/**"
+      ],
+      "pattern": "^use\\s+App\\\\(Actions|Jobs|Http)\\\\",
+      "kind": "forbidden"
+    },
+    {
+      "id": "BOUNDARY_SUPPORT_PURE",
+      "principle": "BOUNDARIES",
+      "message": "app/Support must know neither the framework nor the models",
+      "applies_to": [
+        "app/Support/**"
+      ],
+      "pattern": "^use\\s+(Illuminate|App\\\\Models|App\\\\Actions)\\\\",
+      "kind": "forbidden"
+    },
+    {
+      "id": "BOUNDARY_ENUM_PURE",
+      "principle": "BOUNDARIES",
+      "message": "enum imports models, actions or facades",
+      "applies_to": [
+        "app/Enums/**"
+      ],
+      "pattern": "^use\\s+(App\\\\Models|App\\\\Actions|Illuminate\\\\Support\\\\Facades)\\\\",
+      "kind": "forbidden"
+    },
+    {
+      "id": "BOUNDARY_CONTROLLER_DB",
+      "principle": "BOUNDARIES",
+      "message": "controller accesses DB/Schema directly",
+      "applies_to": [
+        "app/Http/Controllers/**"
+      ],
+      "pattern": "^use\\s+Illuminate\\\\Support\\\\Facades\\\\(DB|Schema)",
+      "kind": "forbidden"
+    },
+    {
+      "id": "FORM_ACTION_FINAL",
+      "principle": "FORM",
+      "message": "action is not final",
+      "applies_to": [
+        "app/Actions/**"
+      ],
+      "pattern": "^\\s*final\\s+(readonly\\s+)?class",
+      "kind": "required"
+    },
+    {
+      "id": "FORM_ACTION_HANDLE",
+      "principle": "FORM",
+      "message": "action has no handle() method",
+      "applies_to": [
+        "app/Actions/**"
+      ],
+      "pattern": "function\\s+handle\\s*\\(",
+      "kind": "required"
+    },
+    {
+      "id": "FORM_CONTROLLER_FINAL",
+      "principle": "FORM",
+      "message": "controller is not final",
+      "applies_to": [
+        "app/Http/Controllers/**"
+      ],
+      "pattern": "^\\s*final\\s+class",
+      "kind": "required"
+    },
+    {
+      "id": "FORM_JOB_FINAL",
+      "principle": "FORM",
+      "message": "job is not final",
+      "applies_to": [
+        "app/Jobs/**"
+      ],
+      "pattern": "^\\s*final\\s+class",
+      "kind": "required"
+    },
+    {
+      "id": "FORM_DATA_IMMUTABLE",
+      "principle": "IMMUTABILITY",
+      "message": "data class is not final readonly",
+      "applies_to": [
+        "app/Data/**"
+      ],
+      "pattern": "^\\s*final\\s+readonly\\s+class",
+      "kind": "required"
+    },
+    {
+      "id": "STATE_MASS_ASSIGNMENT",
+      "principle": "STATE",
+      "message": "$guarded = [] opens every column \u2014 maintain $fillable",
+      "applies_to": [
+        "app/Models/**"
+      ],
+      "pattern": "\\$guarded\\s*=\\s*\\[\\s*\\]",
+      "kind": "forbidden"
+    },
+    {
+      "id": "STATE_MATCH_DEFAULT",
+      "principle": "STATE",
+      "message": "default arm in a match over an enum \u2014 a new case silently lands here",
+      "applies_to": [
+        "app/**"
+      ],
+      "block_start": "\\bmatch\\s*\\(",
+      "bracket": "{",
+      "block_ignore": "match\\s*\\(\\s*true\\s*\\)",
+      "pattern": "^\\s*default\\s*=>",
+      "kind": "in_block"
+    },
+    {
+      "id": "STATE_MONEY_FLOAT",
+      "principle": "STATE",
+      "message": "monetary value ${0} as float \u2014 use an integer in cents",
+      "applies_to": [
+        "app/**"
+      ],
+      "pattern": "\\bfloat\\s+\\$(\\w*(?:betrag|preis|summe|amount|price|total)\\w*)",
+      "kind": "forbidden"
+    },
+    {
+      "id": "IDEMPOTENCY_JOB",
+      "principle": "IDEMPOTENCY",
+      "message": "job without protection against duplicate delivery",
+      "applies_to": [
+        "app/Jobs/**"
+      ],
+      "condition": "implements[^{]*\\bShouldQueue\\b",
+      "pattern": "\\bShouldBeUnique\\b|function\\s+uniqueId\\s*\\(|\\breturn\\s*;",
+      "kind": "conditional"
+    },
+    {
+      "id": "IDEMPOTENCY_JOB_MODEL",
+      "principle": "IDEMPOTENCY",
+      "message": "job carries a model \u2014 serialised and stale by the time it runs",
+      "applies_to": [
+        "app/Jobs/**"
+      ],
+      "pattern": "^use\\s+App\\\\Models\\\\",
+      "kind": "forbidden"
+    },
+    {
+      "id": "TRANSACTION_DISPATCH",
+      "principle": "TRANSACTION",
+      "message": "dispatch inside the transaction \u2014 after a rollback the job acts on a state that never existed",
+      "applies_to": [
+        "app/**"
+      ],
+      "block_start": "DB::transaction\\s*\\(",
+      "bracket": "(",
+      "pattern": "::dispatch\\s*\\(|->dispatch\\s*\\(",
+      "kind": "in_block"
+    },
+    {
+      "id": "ERROR_SWALLOWED",
+      "principle": "ERRORS",
+      "message": "empty catch block swallows the error",
+      "applies_to": [
+        "app/**"
+      ],
+      "anchor": "catch\\s*\\(",
+      "window": 2,
+      "pattern": "catch\\s*\\([^)]*\\)\\s*\\{\\s*\\}",
+      "kind": "forbidden"
+    },
+    {
+      "id": "ERROR_SUPPRESSED",
+      "principle": "ERRORS",
+      "message": "@ suppresses every diagnostic at this call",
+      "applies_to": [
+        "app/**"
+      ],
+      "pattern": "(?<![\\w\\\"'])@[a-zA-Z_]\\w*\\s*\\(",
+      "kind": "forbidden"
+    },
+    {
+      "id": "MIGRATION_RENAME",
+      "principle": "MIGRATION",
+      "message": "renameColumn breaks the old code version during the deploy",
+      "applies_to": [
+        "database/migrations/**"
+      ],
+      "pattern": "->renameColumn\\s*\\(",
+      "kind": "forbidden",
+      "scope_from": "function\\s+up\\s*\\(",
+      "scope_to": "function\\s+down\\s*\\("
+    },
+    {
+      "id": "MIGRATION_DROP",
+      "principle": "MIGRATION",
+      "message": "dropColumn in up() \u2014 the old code may still write to it",
+      "applies_to": [
+        "database/migrations/**"
+      ],
+      "pattern": "->dropColumn\\s*\\(",
+      "kind": "forbidden",
+      "skip_file_if": "@contract",
+      "scope_from": "function\\s+up\\s*\\(",
+      "scope_to": "function\\s+down\\s*\\("
+    },
+    {
+      "id": "MIGRATION_NOT_NULL",
+      "principle": "MIGRATION",
+      "message": "nullable(false) on a new column \u2014 existing rows violate it immediately",
+      "applies_to": [
+        "database/migrations/**"
+      ],
+      "pattern": "->nullable\\s*\\(\\s*false\\s*\\)",
+      "kind": "forbidden",
+      "scope_from": "function\\s+up\\s*\\(",
+      "scope_to": "function\\s+down\\s*\\("
+    },
+    {
+      "id": "MIGRATION_TIMEZONE",
+      "principle": "MIGRATION",
+      "message": "{0}() without a time zone \u2014 use timestampTz()/dateTimeTz()",
+      "applies_to": [
+        "database/migrations/**"
+      ],
+      "pattern": "->(timestamp|dateTime)\\s*\\(",
+      "kind": "forbidden",
+      "scope_from": "function\\s+up\\s*\\(",
+      "scope_to": "function\\s+down\\s*\\("
+    },
+    {
+      "id": "MIGRATION_BULK_UPDATE",
+      "principle": "MIGRATION",
+      "message": "bulk UPDATE locks the table \u2014 run the backfill as its own batched command",
+      "applies_to": [
+        "database/migrations/**"
+      ],
+      "pattern": "DB::table\\([^)]*\\)->update",
+      "kind": "forbidden",
+      "scope_from": "function\\s+up\\s*\\(",
+      "scope_to": "function\\s+down\\s*\\("
+    },
+    {
+      "id": "MIGRATION_DOWN",
+      "principle": "MIGRATION",
+      "message": "migration has no down() \u2014 not reversible",
+      "applies_to": [
+        "database/migrations/**"
+      ],
+      "pattern": "function\\s+down\\s*\\(",
+      "kind": "required"
+    },
+    {
+      "id": "TEST_MOCK_CALL",
+      "principle": "TESTS",
+      "message": "asserting a mock was called traces the implementation instead of checking behaviour",
+      "applies_to": [
+        "tests/Feature/**"
+      ],
+      "pattern": "Mockery::mock|->shouldReceive\\s*\\(",
+      "kind": "forbidden"
+    }
+  ]
+}

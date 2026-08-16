@@ -1,0 +1,279 @@
+{
+  "name": "python",
+  "extensions": [
+    ".py"
+  ],
+  "language": {
+    "line_comment": [
+      "#"
+    ],
+    "block_comment": [
+      [
+        "\"\"\"",
+        "\"\"\""
+      ]
+    ],
+    "strings": [
+      "'",
+      "\""
+    ]
+  },
+  "ignore": [
+    "**/.venv/**",
+    "**/tools/**",
+    "**/__pycache__/**",
+    "**/repo/**"
+  ],
+  "layers": {
+    "domain": "src/actions, src/domain, src/types",
+    "edge": "src/http, src/jobs, src/cli",
+    "persistence": "src/db"
+  },
+  "rules": [
+    {
+      "id": "DEBUG_OUTPUT",
+      "principle": "HYGIENE",
+      "message": "debug output {0} in production code",
+      "applies_to": [
+        "src/**"
+      ],
+      "pattern": "\\b(print|breakpoint|pdb\\.set_trace)\\s*\\(",
+      "kind": "forbidden"
+    },
+    {
+      "id": "HYGIENE_TYPE_IGNORE",
+      "principle": "HYGIENE",
+      "message": "type: ignore without an issue number",
+      "applies_to": [
+        "src/**"
+      ],
+      "source": "raw",
+      "pattern": "#\\s*type:\\s*ignore(?!.*#\\d)",
+      "kind": "forbidden"
+    },
+    {
+      "id": "ENV_OUTSIDE_CONFIG",
+      "principle": "HYGIENE",
+      "message": "os.environ outside src/config",
+      "applies_to": [
+        "src/**"
+      ],
+      "pattern": "os\\.environ|getenv\\s*\\(",
+      "kind": "forbidden",
+      "excludes": [
+        "src/config/**"
+      ]
+    },
+    {
+      "id": "BOUNDARY_ACTION_HTTP",
+      "principle": "BOUNDARIES",
+      "message": "action imports the HTTP layer",
+      "applies_to": [
+        "src/actions/**"
+      ],
+      "source": "raw",
+      "pattern": "^\\s*(from|import)\\s+(flask|fastapi|django|src\\.http)",
+      "kind": "forbidden"
+    },
+    {
+      "id": "BOUNDARY_ACTION_DB",
+      "principle": "BOUNDARIES",
+      "message": "action imports the database driver directly",
+      "applies_to": [
+        "src/actions/**"
+      ],
+      "source": "raw",
+      "pattern": "^\\s*(from|import)\\s+(sqlalchemy|psycopg|pymongo|src\\.db)",
+      "kind": "forbidden"
+    },
+    {
+      "id": "BOUNDARY_DOMAIN_PURE",
+      "principle": "BOUNDARIES",
+      "message": "src/domain must know neither HTTP nor persistence",
+      "applies_to": [
+        "src/domain/**"
+      ],
+      "source": "raw",
+      "pattern": "^\\s*(from|import)\\s+(flask|fastapi|sqlalchemy|psycopg|src\\.db|src\\.http)",
+      "kind": "forbidden"
+    },
+    {
+      "id": "STATE_MUTABLE_DEFAULT",
+      "principle": "STATE",
+      "message": "mutable default argument \u2014 shared across calls",
+      "applies_to": [
+        "src/**"
+      ],
+      "pattern": "def\\s+\\w+\\([^)]*=\\s*(\\[\\]|\\{\\})",
+      "kind": "forbidden"
+    },
+    {
+      "id": "STATE_MONEY_FLOAT",
+      "principle": "STATE",
+      "message": "monetary value {0} as float \u2014 use an integer in cents",
+      "applies_to": [
+        "src/**"
+      ],
+      "pattern": "\\b(\\w*(?:betrag|preis|summe|amount|price|total)(?!_cent)\\w*)\\s*:\\s*float\\b",
+      "kind": "forbidden"
+    },
+    {
+      "id": "ERROR_BARE_EXCEPT",
+      "principle": "ERRORS",
+      "message": "bare except also catches KeyboardInterrupt and SystemExit",
+      "applies_to": [
+        "src/**"
+      ],
+      "pattern": "except\\s*:",
+      "kind": "forbidden"
+    },
+    {
+      "id": "ERROR_SWALLOWED",
+      "principle": "ERRORS",
+      "message": "except with pass swallows the error",
+      "applies_to": [
+        "src/**"
+      ],
+      "anchor": "except\\s+\\w",
+      "window": 2,
+      "pattern": "except\\s+[\\w.]+[^:\\n]*:\\s*pass",
+      "kind": "forbidden"
+    },
+    {
+      "id": "IMMUTABILITY_DTO",
+      "principle": "IMMUTABILITY",
+      "message": "data class without frozen=True",
+      "applies_to": [
+        "src/types/**"
+      ],
+      "condition": "@dataclass",
+      "pattern": "@dataclass\\s*\\(\\s*frozen\\s*=\\s*True",
+      "kind": "conditional"
+    },
+    {
+      "id": "TEST_MOCK_CALL",
+      "principle": "TESTS",
+      "message": "asserting a mock was called traces the implementation instead of checking behaviour",
+      "applies_to": [
+        "tests/**"
+      ],
+      "pattern": "assert_called(_once)?(_with)?\\s*\\(",
+      "kind": "forbidden"
+    },
+    {
+      "id": "MIGRATION_DROP",
+      "principle": "MIGRATION",
+      "message": "drop_column in up() \u2014 the old code may still write to it",
+      "applies_to": [
+        "src/db/migrations/**"
+      ],
+      "pattern": "drop_column|DROP COLUMN",
+      "kind": "forbidden",
+      "excludes": [
+        "**/__init__.py"
+      ],
+      "skip_file_if": "@contract",
+      "scope_from": "^def\\s+up\\s*\\(",
+      "scope_to": "^def\\s+down\\s*\\("
+    },
+    {
+      "id": "MIGRATION_RENAME",
+      "principle": "MIGRATION",
+      "message": "rename_column breaks the old code version during the deploy",
+      "applies_to": [
+        "src/db/migrations/**"
+      ],
+      "pattern": "rename_column|RENAME COLUMN",
+      "kind": "forbidden",
+      "excludes": [
+        "**/__init__.py"
+      ],
+      "scope_from": "^def\\s+up\\s*\\(",
+      "scope_to": "^def\\s+down\\s*\\("
+    },
+    {
+      "id": "MIGRATION_NOT_NULL",
+      "principle": "MIGRATION",
+      "message": "new column without nullable \u2014 existing rows violate it immediately",
+      "applies_to": [
+        "src/db/migrations/**"
+      ],
+      "source": "raw",
+      "pattern": "add_column\\s*\\((?![^\\n]*(?:nullable\\s*=\\s*True|default\\s*=))",
+      "kind": "forbidden",
+      "excludes": [
+        "**/__init__.py"
+      ],
+      "scope_from": "^def\\s+up\\s*\\(",
+      "scope_to": "^def\\s+down\\s*\\("
+    },
+    {
+      "id": "MIGRATION_TIMEZONE",
+      "principle": "MIGRATION",
+      "message": "timestamp without a time zone \u2014 use timestamptz",
+      "applies_to": [
+        "src/db/migrations/**"
+      ],
+      "source": "raw",
+      "pattern": "typ\\s*=\\s*[\\\"']?timestamp(?!tz)",
+      "kind": "forbidden",
+      "excludes": [
+        "**/__init__.py"
+      ],
+      "scope_from": "^def\\s+up\\s*\\(",
+      "scope_to": "^def\\s+down\\s*\\("
+    },
+    {
+      "id": "MIGRATION_BULK_UPDATE",
+      "principle": "MIGRATION",
+      "message": "bulk UPDATE locks the table \u2014 run the backfill as its own script",
+      "applies_to": [
+        "src/db/migrations/**"
+      ],
+      "source": "raw",
+      "pattern": "UPDATE\\s+\\w+\\s+SET|\\.update\\s*\\(",
+      "kind": "forbidden",
+      "excludes": [
+        "**/__init__.py"
+      ],
+      "scope_from": "^def\\s+up\\s*\\(",
+      "scope_to": "^def\\s+down\\s*\\("
+    },
+    {
+      "id": "MIGRATION_DOWN",
+      "principle": "MIGRATION",
+      "message": "migration has no down() \u2014 not reversible",
+      "applies_to": [
+        "src/db/migrations/**"
+      ],
+      "pattern": "^def\\s+down\\s*\\(",
+      "kind": "required",
+      "excludes": [
+        "**/__init__.py"
+      ]
+    },
+    {
+      "id": "IDEMPOTENCY_HANDLER",
+      "principle": "IDEMPOTENCY",
+      "message": "queue handler without protection against duplicate delivery",
+      "applies_to": [
+        "src/jobs/**"
+      ],
+      "condition": "^def\\s+(handle|verarbeite|process)\\w*\\s*\\(",
+      "pattern": "in\\s+VERARBEITET|in\\s+PROCESSED|idempotency|already_processed|dedupe|processed",
+      "kind": "conditional"
+    },
+    {
+      "id": "TRANSACTION_SIDE_EFFECT",
+      "principle": "TRANSACTION",
+      "message": "side effect inside the transaction \u2014 after a rollback it acts on a state that never existed",
+      "applies_to": [
+        "src/**"
+      ],
+      "anchor": "with\\s+[\\w.]*transaction|with\\s+[\\w.]*atomic",
+      "window": 6,
+      "pattern": "(?:transaction|atomic)[\\s\\S]{0,200}?\\b(enqueue|publish|emit|send_mail|dispatch)\\s*\\(",
+      "kind": "forbidden"
+    }
+  ]
+}

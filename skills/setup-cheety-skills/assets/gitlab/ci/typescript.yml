@@ -1,0 +1,39 @@
+check:typescript:
+  stage: test
+  image: node:22
+  interruptible: true
+  timeout: 15 minutes
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+  services:
+    - name: postgres:16
+      alias: postgres
+
+  cache:
+    key:
+      files: [package-lock.json]
+    paths: [node_modules/]
+
+  before_script:
+    # The node image carries no Python, and the principle checker needs one.
+    - apt-get update -qq && apt-get install -y -qq python3
+    - npm ci
+
+  script:
+    - npx prettier --check .                                                  # 1 - Formatting
+    - npx tsc --noEmit                                                        # 2 - Type check
+    - npx eslint .                                                            # 3 - Lint
+    - python3 tools/arch-check/arch_check.py . --profile "$STACK_PROFILE"     # 4 - Principle rules
+    - python3 tools/arch-check/eval.py --profile "$STACK_PROFILE"             # 5 - Self-test of the rules
+    - npx vitest run                                                          # 6 - Tests
+
+  variables:
+    STACK_PROFILE: typescript
+    # The service container reads these too — job variables reach it.
+    POSTGRES_DB: testing
+    POSTGRES_USER: testing
+    POSTGRES_PASSWORD: testing
+    # Service alias, not localhost: the job container reaches services by name.
+    DATABASE_URL: postgres://testing:testing@postgres:5432/testing

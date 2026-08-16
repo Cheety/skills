@@ -1,0 +1,27 @@
+name: Chore
+description: Wartung, Abhaengigkeiten, Aufraeumen
+title: '[Chore]: '
+labels:
+  - chore
+body:
+  - type: textarea
+    id: was
+    attributes:
+      label: Was
+    validations:
+      required: true
+
+  - type: textarea
+    id: warum
+    attributes:
+      label: Warum jetzt
+      description: Ohne Antwort gehoert es ins Backlog, nicht in einen Sprint.
+    validations:
+      required: true
+
+  - type: textarea
+    id: nichtziele
+    attributes:
+      label: Nicht-Ziele
+    validations:
+      required: true

@@ -1,0 +1,10 @@
+# Leere Issues ohne Vorlage verhindern: Jedes Issue soll Akzeptanzkriterien
+# und Nicht-Ziele tragen, sonst wird es in der Umsetzung geraten.
+blank_issues_enabled: false
+contact_links:
+  - name: Projektregeln lesen
+    url: https://example.invalid/AGENTS.md
+    about: Prinzipien, Definition of Done und Arbeitsweise. Vor dem ersten Issue lesen.
+  - name: Stack-Profil
+    url: https://example.invalid/profiles
+    about: Verzeichnisse, Idiome und automatisch erzwungene Regeln dieses Stacks.

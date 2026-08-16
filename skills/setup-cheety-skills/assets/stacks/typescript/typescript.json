@@ -1,0 +1,316 @@
+{
+  "name": "typescript",
+  "extensions": [
+    ".ts",
+    ".tsx"
+  ],
+  "language": {
+    "line_comment": [
+      "//"
+    ],
+    "block_comment": [
+      [
+        "/*",
+        "*/"
+      ]
+    ],
+    "strings": [
+      "'",
+      "\"",
+      "`"
+    ]
+  },
+  "ignore": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/tools/**",
+    "**/*.d.ts"
+  ],
+  "layers": {
+    "domain": "src/actions, src/domain, src/types",
+    "edge": "src/http, src/jobs, src/cli",
+    "persistence": "src/db, src/db/migrations"
+  },
+  "rules": [
+    {
+      "id": "STRICT_TYPES",
+      "principle": "HYGIENE",
+      "message": "`any` bypasses the type checker \u2014 use unknown plus narrowing",
+      "applies_to": [
+        "src/**"
+      ],
+      "pattern": ":\\s*any\\b|<any>|as\\s+any\\b",
+      "kind": "forbidden"
+    },
+    {
+      "id": "HYGIENE_TS_IGNORE",
+      "principle": "HYGIENE",
+      "message": "@ts-ignore without an issue number",
+      "applies_to": [
+        "src/**"
+      ],
+      "source": "raw",
+      "pattern": "@ts-(ignore|expect-error)(?!.*#\\d)",
+      "kind": "forbidden"
+    },
+    {
+      "id": "DEBUG_OUTPUT",
+      "principle": "HYGIENE",
+      "message": "debug output {0} in production code",
+      "applies_to": [
+        "src/**"
+      ],
+      "pattern": "\\b(console\\.log|console\\.debug|debugger)\\b",
+      "kind": "forbidden"
+    },
+    {
+      "id": "ENV_OUTSIDE_CONFIG",
+      "principle": "HYGIENE",
+      "message": "process.env outside src/config \u2014 validate configuration in one place",
+      "applies_to": [
+        "src/**"
+      ],
+      "pattern": "process\\.env\\b",
+      "kind": "forbidden",
+      "excludes": [
+        "src/config/**"
+      ]
+    },
+    {
+      "id": "BOUNDARY_ACTION_HTTP",
+      "principle": "BOUNDARIES",
+      "message": "action imports the HTTP layer \u2014 not testable without a server",
+      "applies_to": [
+        "src/actions/**"
+      ],
+      "source": "raw",
+      "pattern": "^import .*from ['\\\"](express|fastify|next/server|\\.\\./http|@/http)",
+      "kind": "forbidden"
+    },
+    {
+      "id": "BOUNDARY_ACTION_DB",
+      "principle": "BOUNDARIES",
+      "message": "action imports the database client directly \u2014 inject a repository or port",
+      "applies_to": [
+        "src/actions/**"
+      ],
+      "source": "raw",
+      "pattern": "^import .*from ['\\\"](@prisma/client|pg|mysql2)",
+      "kind": "forbidden"
+    },
+    {
+      "id": "BOUNDARY_DOMAIN_PURE",
+      "principle": "BOUNDARIES",
+      "message": "src/domain must know neither HTTP nor persistence",
+      "applies_to": [
+        "src/domain/**"
+      ],
+      "source": "raw",
+      "pattern": "^import .*from ['\\\"](express|@prisma/client|\\.\\./db|\\.\\./http|@/db|@/http)",
+      "kind": "forbidden"
+    },
+    {
+      "id": "BOUNDARY_ROUTE_DB",
+      "principle": "BOUNDARIES",
+      "message": "route hits the database directly \u2014 call an action",
+      "applies_to": [
+        "src/http/**"
+      ],
+      "source": "raw",
+      "pattern": "^import .*from ['\\\"](@prisma/client|pg|mysql2)",
+      "kind": "forbidden"
+    },
+    {
+      "id": "FORM_ACTION_EXPORT",
+      "principle": "FORM",
+      "message": "action exports no execute() function",
+      "applies_to": [
+        "src/actions/**"
+      ],
+      "pattern": "export\\s+(async\\s+)?function\\s+execute\\b|export\\s+const\\s+execute\\b",
+      "kind": "required"
+    },
+    {
+      "id": "FORM_ACTION_DEFAULT_EXPORT",
+      "principle": "FORM",
+      "message": "default export makes renaming and auto-import harder",
+      "applies_to": [
+        "src/**"
+      ],
+      "pattern": "^export\\s+default\\b",
+      "kind": "forbidden"
+    },
+    {
+      "id": "IMMUTABILITY_DTO",
+      "principle": "IMMUTABILITY",
+      "message": "DTO fields are not readonly \u2014 mutation goes unnoticed",
+      "applies_to": [
+        "src/types/**"
+      ],
+      "condition": "^export\\s+(type|interface)\\s+\\w+(Data|Dto|Input)\\b",
+      "pattern": "readonly\\s+\\w+\\s*[?:]",
+      "kind": "conditional"
+    },
+    {
+      "id": "STATE_BOOLEAN_FLAGS",
+      "principle": "STATE",
+      "message": "status as a boolean field ({0}) \u2014 use a discriminated union",
+      "applies_to": [
+        "src/**"
+      ],
+      "pattern": "\\b(is[A-Z]\\w*|has[A-Z]\\w*)\\s*:\\s*boolean",
+      "first_only": false,
+      "kind": "forbidden"
+    },
+    {
+      "id": "STATE_SWITCH_DEFAULT",
+      "principle": "STATE",
+      "message": "default arm in a switch over a union \u2014 a new case lands here silently instead of breaking the build",
+      "applies_to": [
+        "src/**"
+      ],
+      "block_start": "switch\\s*\\(",
+      "bracket": "{",
+      "block_ignore": "switch\\s*\\(\\s*true\\s*\\)",
+      "pattern": "^\\s*default\\s*:",
+      "kind": "in_block"
+    },
+    {
+      "id": "STATE_MONEY_NUMBER",
+      "principle": "STATE",
+      "message": "monetary value {0} as number \u2014 rounding errors. Use an integer in cents",
+      "applies_to": [
+        "src/**"
+      ],
+      "pattern": "\\b(\\w*(?:amount|price|total|betrag|preis|summe)(?!Cents?\\b)(?!Cts\\b)\\w*)\\s*:\\s*number\\b",
+      "kind": "forbidden"
+    },
+    {
+      "id": "IDEMPOTENCY_HANDLER",
+      "principle": "IDEMPOTENCY",
+      "message": "queue handler without protection against duplicate delivery",
+      "applies_to": [
+        "src/jobs/**"
+      ],
+      "condition": "export\\s+(async\\s+)?function\\s+handle\\b",
+      "pattern": "idempotencyKey|alreadyProcessed|dedupe|jobId|processedAt|!==\\s*null[\\s\\S]{0,40}return|return\\s*;",
+      "kind": "conditional"
+    },
+    {
+      "id": "TRANSACTION_SIDE_EFFECT",
+      "principle": "TRANSACTION",
+      "message": "side effect inside the transaction \u2014 after a rollback it acts on a state that never existed",
+      "applies_to": [
+        "src/**"
+      ],
+      "block_start": "\\$transaction\\s*\\(|\\.transaction\\s*\\(",
+      "bracket": "(",
+      "pattern": "\\b(enqueue|publish|emit|dispatch|sendMail)\\s*\\(",
+      "kind": "in_block"
+    },
+    {
+      "id": "ERROR_SWALLOWED",
+      "principle": "ERRORS",
+      "message": "empty catch block swallows the error",
+      "applies_to": [
+        "src/**"
+      ],
+      "pattern": "catch\\s*(\\([^)]*\\))?\\s*\\{\\s*\\}",
+      "kind": "forbidden"
+    },
+    {
+      "id": "ERROR_FLOATING_PROMISE",
+      "principle": "ERRORS",
+      "message": ".then() without .catch() \u2014 a rejected promise stays unhandled",
+      "applies_to": [
+        "src/**"
+      ],
+      "anchor": "\\.then\\s*\\(",
+      "window": "statement",
+      "pattern": "\\.then\\s*\\((?![\\s\\S]*\\.catch)",
+      "kind": "forbidden"
+    },
+    {
+      "id": "MIGRATION_DROP",
+      "principle": "MIGRATION",
+      "message": "dropColumn in up() \u2014 the old code may still write to it",
+      "applies_to": [
+        "src/db/migrations/**"
+      ],
+      "pattern": "dropColumn|DROP COLUMN",
+      "kind": "forbidden",
+      "skip_file_if": "@contract",
+      "scope_from": "export\\s+(async\\s+)?function\\s+up\\b",
+      "scope_to": "export\\s+(async\\s+)?function\\s+down\\b"
+    },
+    {
+      "id": "MIGRATION_RENAME",
+      "principle": "MIGRATION",
+      "message": "renameColumn breaks the old code version during the deploy",
+      "applies_to": [
+        "src/db/migrations/**"
+      ],
+      "pattern": "renameColumn|RENAME COLUMN",
+      "kind": "forbidden",
+      "scope_from": "export\\s+(async\\s+)?function\\s+up\\b",
+      "scope_to": "export\\s+(async\\s+)?function\\s+down\\b"
+    },
+    {
+      "id": "MIGRATION_NOT_NULL",
+      "principle": "MIGRATION",
+      "message": "NOT NULL on a new column \u2014 existing rows violate it immediately",
+      "applies_to": [
+        "src/db/migrations/**"
+      ],
+      "pattern": "notNullable\\s*\\(\\s*\\)|NOT NULL(?!.*DEFAULT)",
+      "kind": "forbidden",
+      "scope_from": "export\\s+(async\\s+)?function\\s+up\\b",
+      "scope_to": "export\\s+(async\\s+)?function\\s+down\\b"
+    },
+    {
+      "id": "MIGRATION_TIMEZONE",
+      "principle": "MIGRATION",
+      "message": "timestamp without a time zone \u2014 use timestamptz",
+      "applies_to": [
+        "src/db/migrations/**"
+      ],
+      "pattern": "\\btimestamp\\s*\\(|TIMESTAMP(?!TZ)\\b",
+      "kind": "forbidden",
+      "scope_from": "export\\s+(async\\s+)?function\\s+up\\b",
+      "scope_to": "export\\s+(async\\s+)?function\\s+down\\b"
+    },
+    {
+      "id": "MIGRATION_BULK_UPDATE",
+      "principle": "MIGRATION",
+      "message": "bulk UPDATE locks the table \u2014 run the backfill as its own script",
+      "applies_to": [
+        "src/db/migrations/**"
+      ],
+      "pattern": "UPDATE\\s+\\w+\\s+SET|\\.update\\s*\\(",
+      "kind": "forbidden",
+      "scope_from": "export\\s+(async\\s+)?function\\s+up\\b",
+      "scope_to": "export\\s+(async\\s+)?function\\s+down\\b"
+    },
+    {
+      "id": "MIGRATION_DOWN",
+      "principle": "MIGRATION",
+      "message": "migration has no down() \u2014 not reversible",
+      "applies_to": [
+        "src/db/migrations/**"
+      ],
+      "pattern": "export\\s+(async\\s+)?function\\s+down\\b",
+      "kind": "required"
+    },
+    {
+      "id": "TEST_MOCK_CALL",
+      "principle": "TESTS",
+      "message": "asserting a mock was called traces the implementation instead of checking behaviour",
+      "applies_to": [
+        "tests/**",
+        "**/*.test.ts"
+      ],
+      "pattern": "toHaveBeenCalled(Times|With)?\\s*\\(",
+      "kind": "forbidden"
+    }
+  ]
+}

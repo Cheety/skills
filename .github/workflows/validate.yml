@@ -1,0 +1,62 @@
+# Validates this repository as a skills source. It is NOT the harness CI —
+# that one ships inside the installer assets and lands in a user's project.
+#
+# One reason this file exists: an unquoted colon in a `description:` makes the
+# frontmatter invalid, and `npx skills` then skips that skill without any error.
+# It simply disappears from --list. That happened here once and was noticed only
+# by counting.
+name: Validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Every skill discoverable
+        run: |
+          pip install --quiet pyyaml
+          python3 scripts/skills_check.py .
+
+      - name: Forge assets match their own syntax
+        run: |
+          A=skills/setup-cheety-skills/assets
+          python3 "$A/tools/forge_check.py" "$A"
+
+      - name: Rules still catch their planted violations
+        run: |
+          A=skills/setup-cheety-skills/assets
+          for p in laravel typescript python; do
+            python3 "$A/tools/arch-check/eval.py" --profile "$p" \
+              --fixtures "$A/stacks/$p/fixtures"
+          done
+
+      - name: A fresh install works end to end
+        run: |
+          for p in laravel typescript python; do
+            rm -rf "/tmp/probe-$p"
+            node skills/setup-cheety-skills/install.mjs --stack "$p" --target "/tmp/probe-$p"
+            python3 "/tmp/probe-$p/tools/arch-check/arch_check.py" "/tmp/probe-$p" --profile "$p" --coverage
+          done
+
+      # Each forge writes different files; the checker has to pass on all of them.
+      - name: Every forge installs into something valid
+        run: |
+          for f in forgejo github gitlab; do
+            rm -rf "/tmp/forge-$f"
+            node skills/setup-cheety-skills/install.mjs --stack laravel --forge "$f" --target "/tmp/forge-$f"
+            python3 skills/setup-cheety-skills/assets/tools/forge_check.py "/tmp/forge-$f" --forge "$f"
+          done

@@ -1,0 +1,75 @@
+name: Bug
+about: Verhalten weicht von der Erwartung ab
+title: '[Bug]: '
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Ohne Reproduktion wird nicht gefixt.** Wenn du sie nicht hast, ist das
+        kein Hindernis — trag ein, was du weisst, und lass die uebrigen Felder
+        offen. Ein Issue mit offener Frage ist besser als eines mit erfundener
+        Antwort.
+
+  - type: textarea
+    id: reproduktion
+    attributes:
+      label: Reproduktion
+      description: Nummerierte Schritte.
+      placeholder: |
+        1. Als Kunde mit mehr als 10 Rechnungen anmelden
+        2. Rechnungsuebersicht oeffnen
+        3. Auf "Mahnung senden" klicken
+    validations:
+      required: true
+
+  - type: textarea
+    id: erwartet
+    attributes:
+      label: Erwartet vs. tatsaechlich
+      placeholder: |
+        Erwartet:     Eine Mahnung, Status wechselt auf "Mahnung"
+        Tatsaechlich: Zwei identische Mahnungsmails, Status korrekt
+    validations:
+      required: true
+
+  - type: input
+    id: umgebung
+    attributes:
+      label: Umgebung und Haeufigkeit
+      placeholder: Produktion, seit Deploy vom 14.08., etwa jede 5. Mahnung
+    validations:
+      required: true
+
+  - type: textarea
+    id: nichtziele
+    attributes:
+      label: Nicht-Ziele
+      description: >
+        Pflichtfeld. Was wird in diesem Issue ausdruecklich nicht angefasst?
+        Das ist die wirksamste Einzelmassnahme gegen Over-Engineering.
+      placeholder: |
+        - Kein Refactoring der Mahnlogik
+        - Keine Umstellung des Queue-Treibers
+    validations:
+      required: true
+
+  - type: input
+    id: kontext
+    attributes:
+      label: Betroffene Pfade
+      description: Ohne Pfad sucht die Umsetzungssitzung im ganzen Repository.
+      placeholder: app/Jobs/VersendeMahnungsMail.php, app/Actions/Rechnung/
+    validations:
+      required: true
+
+  - type: dropdown
+    id: groesse
+    attributes:
+      label: Groesse
+      options:
+        - S (< 100 Zeilen)
+        - M (< 400 Zeilen)
+    validations:
+      required: true

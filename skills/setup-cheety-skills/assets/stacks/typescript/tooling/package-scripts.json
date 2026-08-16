@@ -1,0 +1,12 @@
+{
+  "_hinweis": "Diesen scripts-Block in die vorhandene package.json uebernehmen.",
+  "scripts": {
+    "check": "npm run format:check && npm run typecheck && npm run lint && npm run arch && npm run test",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "arch": "python3 tools/arch-check/arch_check.py . --profil typescript",
+    "arch:eval": "python3 tools/arch-check/eval.py --profil typescript",
+    "test": "vitest run"
+  }
+}

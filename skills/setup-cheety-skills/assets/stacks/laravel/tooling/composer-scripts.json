@@ -1,0 +1,23 @@
+{
+    "_hinweis": "Diesen scripts-Block in die vorhandene composer.json uebernehmen.",
+    "scripts": {
+        "check": [
+            "@format:test",
+            "@analyse",
+            "@arch",
+            "@arch:eval",
+            "@test"
+        ],
+        "format": "pint",
+        "format:test": "pint --test",
+        "analyse": "phpstan analyse --memory-limit=1G",
+        "test": "pest",
+        "test:arch": "pest --testsuite=Arch",
+        "test:unit": "pest --testsuite=Unit",
+        "test:feature": "pest --testsuite=Feature",
+        "baseline": "phpstan analyse --generate-baseline",
+        "arch": "python3 tools/arch-check/arch_check.py . --profil laravel",
+        "arch:eval": "python3 tools/arch-check/eval.py --profil laravel",
+        "skill:eval": "python3 tools/skill-eval/rubrik.py tools/skill-eval/ergebnis/issues"
+    }
+}

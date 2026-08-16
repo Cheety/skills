@@ -1,0 +1,76 @@
+name: CI Python
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  STACK_PROFILE: python
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # Real Postgres, not SQLite — see profiles/python/PROFILE.md, the test suite
+    # runs against the same engine as production.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: testing
+          POSTGRES_USER: testing
+          POSTGRES_PASSWORD: testing
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      # The one line to adjust: replace with `pip install -e '.[dev]'`,
+      # `uv sync --dev` or whatever this repository actually uses.
+      - name: Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      # Order: cheapest check first, so CI fails early.
+
+      - name: 1 - Formatting
+        run: ruff format --check .
+
+      - name: 2 - Lint
+        run: ruff check .
+
+      - name: 3 - Type check
+        run: mypy --strict src
+
+      - name: 4 - Principle rules
+        run: python3 tools/arch-check/arch_check.py . --profile "$STACK_PROFILE"
+
+      - name: 5 - Self-test of the rules
+        run: python3 tools/arch-check/eval.py --profile "$STACK_PROFILE"
+
+      - name: 6 - Tests
+        run: python3 -m pytest
+        env:
+          # On GitHub-hosted runners the job runs on the host, not in a container,
+          # so the service is reached on localhost — not under its service name.
+          DATABASE_URL: postgresql://testing:testing@127.0.0.1:5432/testing
+
+      # Deliberately NO coverage threshold. A percentage target reliably produces
+      # tests without assertions.

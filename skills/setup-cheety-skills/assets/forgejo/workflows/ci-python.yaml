@@ -1,0 +1,67 @@
+name: CI Python
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+env:
+  STACK_PROFILE: python
+
+jobs:
+  pruefe:
+    runs-on: docker
+    container:
+      image: python:3.12
+    timeout-minutes: 15
+
+    # Real Postgres, not SQLite — see profiles/python/PROFILE.md, the test suite
+    # runs against the same engine as production.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: testing
+          POSTGRES_USER: testing
+          POSTGRES_PASSWORD: testing
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-retries 5
+
+    steps:
+      - uses: https://data.forgejo.org/actions/checkout@v4
+
+      # The one line to adjust: replace with `pip install -e '.[dev]'`,
+      # `uv sync --dev` or whatever this repository actually uses.
+      - name: Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      # Order: cheapest check first, so CI fails early.
+
+      - name: 1 - Formatting
+        run: ruff format --check .
+
+      - name: 2 - Lint
+        run: ruff check .
+
+      - name: 3 - Type check
+        run: mypy --strict src
+
+      - name: 4 - Principle rules
+        run: python3 tools/arch-check/arch_check.py . --profile "$STACK_PROFILE"
+
+      - name: 5 - Self-test of the rules
+        run: python3 tools/arch-check/eval.py --profile "$STACK_PROFILE"
+
+      - name: 6 - Tests
+        run: python3 -m pytest
+        env:
+          # Service name, not 127.0.0.1: the job itself runs in a container.
+          DATABASE_URL: postgresql://testing:testing@postgres:5432/testing
+
+      # Deliberately NO coverage threshold. A percentage target reliably produces
+      # tests without assertions.

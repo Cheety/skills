@@ -1,0 +1,46 @@
+check:python:
+  stage: test
+  image: python:3.12
+  interruptible: true
+  timeout: 15 minutes
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+  # Real Postgres, not SQLite — see profiles/python/PROFILE.md, the test suite
+  # runs against the same engine as production.
+  services:
+    - name: postgres:16
+      alias: postgres
+
+  cache:
+    key:
+      files: [requirements-dev.txt]
+    paths: [.cache/pip]
+
+  before_script:
+    # The one line to adjust: replace with `pip install -e '.[dev]'`,
+    # `uv sync --dev` or whatever this repository actually uses.
+    - python -m pip install --upgrade pip
+    - pip install -r requirements-dev.txt
+
+  script:
+    - ruff format --check .                                                   # 1 - Formatting
+    - ruff check .                                                            # 2 - Lint
+    - mypy --strict src                                                       # 3 - Type check
+    - python3 tools/arch-check/arch_check.py . --profile "$STACK_PROFILE"     # 4 - Principle rules
+    - python3 tools/arch-check/eval.py --profile "$STACK_PROFILE"             # 5 - Self-test of the rules
+    - python3 -m pytest                                                       # 6 - Tests
+
+  variables:
+    STACK_PROFILE: python
+    # The service container reads these too — job variables reach it.
+    POSTGRES_DB: testing
+    POSTGRES_USER: testing
+    POSTGRES_PASSWORD: testing
+    PIP_CACHE_DIR: $CI_PROJECT_DIR/.cache/pip
+    # Service alias, not localhost: the job runs in its own container.
+    DATABASE_URL: postgresql://testing:testing@postgres:5432/testing
+
+  # Deliberately NO coverage threshold. A percentage target reliably produces
+  # tests without assertions.

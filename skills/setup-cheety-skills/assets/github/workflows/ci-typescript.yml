@@ -1,0 +1,68 @@
+name: CI TypeScript
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  STACK_PROFILE: typescript
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: testing
+          POSTGRES_USER: testing
+          POSTGRES_PASSWORD: testing
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ubuntu-latest ships Python 3, so the principle checker needs no setup
+      # step of its own. Pinning it is still cheaper than debugging a runner
+      # image change later.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: npm ci
+
+      - name: 1 - Formatting
+        run: npx prettier --check .
+
+      - name: 2 - Type check
+        run: npx tsc --noEmit
+
+      - name: 3 - Lint
+        run: npx eslint .
+
+      - name: 4 - Principle rules
+        run: python3 tools/arch-check/arch_check.py . --profile "$STACK_PROFILE"
+
+      - name: 5 - Self-test of the rules
+        run: python3 tools/arch-check/eval.py --profile "$STACK_PROFILE"
+
+      - name: 6 - Tests
+        run: npx vitest run
+        env:
+          DATABASE_URL: postgres://testing:testing@127.0.0.1:5432/testing

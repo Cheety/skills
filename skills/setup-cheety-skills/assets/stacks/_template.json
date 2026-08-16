@@ -1,0 +1,53 @@
+{
+  "name": "_template",
+  "extensions": [
+    ".ext"
+  ],
+  "language": {
+    "line_comment": [
+      "//"
+    ],
+    "block_comment": [
+      [
+        "/*",
+        "*/"
+      ]
+    ],
+    "strings": [
+      "'",
+      "\""
+    ]
+  },
+  "ignore": [
+    "**/node_modules/**",
+    "**/vendor/**",
+    "**/tools/**"
+  ],
+  "layers": {
+    "domain": "",
+    "edge": "",
+    "persistence": ""
+  },
+  "not_applicable": [],
+  "_notes": {
+    "kind": "forbidden | required | conditional | in_block",
+    "source": "code (default: comments and strings removed) | raw (signal lives inside a string or comment)",
+    "window": "0 | <n> | 'statement' — multi-line rules. CAUTION: 'statement' ends at a semicolon and is only usable in languages that have one. In Python and similar, use a single-line check or a fixed window. Pair it with 'anchor' to pin the finding to the current line.",
+    "scope_from / scope_to": "restrict to a named block, e.g. only the up() body of a migration",
+    "except_values": "values of the first capture group that are allowed",
+    "skip_file_if": "regex; when it matches the file, the rule is skipped",
+    "not_applicable": "principles this stack genuinely does not have. Silence by declaration, not by omission."
+  },
+  "rules": [
+    {
+      "id": "EXAMPLE",
+      "principle": "HYGIENE",
+      "kind": "forbidden",
+      "applies_to": [
+        "src/**"
+      ],
+      "pattern": "debugger",
+      "message": "debug statement in production code"
+    }
+  ]
+}
