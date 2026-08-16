@@ -17,6 +17,10 @@ jobs:
 
     # Real Postgres, not SQLite — see profiles/python/PROFILE.md, the test suite
     # runs against the same engine as production.
+    #
+    # Deliberately no `ports:`. A Forgejo runner is a long-lived shared host —
+    # publishing 5432 to it makes the second concurrent job fail with "port is
+    # already allocated". The job container reaches the service by name anyway.
     services:
       postgres:
         image: postgres:16
@@ -24,7 +28,6 @@ jobs:
           POSTGRES_DB: testing
           POSTGRES_USER: testing
           POSTGRES_PASSWORD: testing
-        ports: ['5432:5432']
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
