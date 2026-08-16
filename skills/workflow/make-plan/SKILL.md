@@ -5,6 +5,10 @@ description: Produces a verifiable implementation plan with affected files, step
 
 # Make a plan
 
+**Plans are written in GERMAN.** This skill file is English; the artifact it
+produces is German — see AGENTS.md, "Language". A human confirms the plan, and
+they confirm it in the language they discuss the work in.
+
 **Read first:** `AGENTS.md` and `profiles/<stack>/PROFILE.md`.
 
 ## Purpose
@@ -17,6 +21,20 @@ a dead end.
 
 ## Structure of the plan
 
+The plan is delivered under these headings, in this order and with these German
+names. The sections below explain each one in English; what you write is German.
+
+```
+## Problem wie verstanden
+## Annahmen
+## Betroffene Dateien
+## Schrittfolge
+## Testplan
+## Nicht angefasst
+## Slice-Grenze      ← nur bei features
+## Diff-Schätzung
+```
+
 ### 1. The problem as understood (one paragraph)
 
 In your own words, not as a quotation of the issue. Rephrasing exposes
@@ -28,10 +46,10 @@ misunderstandings; quoting hides them.
 before they are code. List everything the issue does not answer but you need:
 
 ```
-Assumptions:
-- The period is computed in the user's time zone, not UTC   ← uncertain
-- `Rechnung::betrag` is stored in cents (read from migration 2024_03_11)
-- A job retry of 3 attempts already exists (queue configuration)
+## Annahmen
+- Die Frist wird in der Zeitzone des Nutzers gerechnet, nicht in UTC   ← unsicher
+- `Rechnung::betrag` liegt in Cent (aus Migration 2024_03_11 gelesen)
+- Ein Job-Retry von 3 Versuchen existiert bereits (Queue-Konfiguration)
 ```
 
 Mark uncertain assumptions explicitly. With more than two uncertain assumptions:
@@ -42,11 +60,12 @@ Mark uncertain assumptions explicitly. With more than two uncertain assumptions:
 Each file with one sentence. New files marked `NEW`.
 
 ```
-app/Enums/RechnungStatus.php            add case `Mahnung` + transition rule
-app/Actions/Rechnung/SendeMahnung.php   NEW — state change + dispatch job
-app/Jobs/VersendeMahnungsMail.php       NEW — idempotent via ShouldBeUnique
-database/migrations/..._add_mahnung...  NEW — column gemahnt_am, nullable
-tests/Feature/Rechnung/MahnungTest.php  NEW — 4 cases (see step 5)
+## Betroffene Dateien
+app/Enums/RechnungStatus.php            Fall `Mahnung` + Übergangsregel
+app/Actions/Rechnung/SendeMahnung.php   NEU — Statuswechsel + Job dispatchen
+app/Jobs/VersendeMahnungsMail.php       NEU — idempotent über ShouldBeUnique
+database/migrations/..._add_mahnung...  NEU — Spalte gemahnt_am, nullable
+tests/Feature/Rechnung/MahnungTest.php  NEU — 4 Fälle (siehe Schritt 5)
 ```
 
 If this list grows past about eight entries the issue is too large. Say so and
@@ -58,11 +77,12 @@ Three to ten steps, each runnable and testable on its own. Ordered by "smallest
 working step first".
 
 ```
-1. Add enum case + transition rule, unit test        → green
-2. Write migration and run it locally                 → green
-3. Action with state change, feature test             → green
-4. Job with idempotency guard, feature test with fake → green
-5. Wire into the scheduler                            → green
+## Schrittfolge
+1. Enum-Fall + Übergangsregel, Unit-Test              → grün
+2. Migration schreiben und lokal ausführen            → grün
+3. Action mit Statuswechsel, Feature-Test              → grün
+4. Job mit Idempotenz-Sperre, Feature-Test mit Fake    → grün
+5. In den Scheduler hängen                            → grün
 ```
 
 Tests run after **every** step. Not at the end — otherwise a failure can no
@@ -73,10 +93,11 @@ longer be located.
 Which cases, which kind of test. Concrete, not "write tests".
 
 ```
-Feature: invoice sent 14 days ago      → status Mahnung, job queued
-Feature: invoice already paid          → no change, no job
-Feature: job executed twice            → one mail only (idempotency)
-Unit:    RechnungStatus::darfWechselnZu → all 16 combinations
+## Testplan
+Feature: Rechnung vor 14 Tagen versandt  → Status Mahnung, Job in der Queue
+Feature: Rechnung bereits bezahlt        → keine Änderung, kein Job
+Feature: Job zweimal ausgeführt          → nur eine Mail (Idempotenz)
+Unit:    RechnungStatus::darfWechselnZu  → alle 16 Kombinationen
 ```
 
 ### 6. What I will not touch
@@ -84,11 +105,11 @@ Unit:    RechnungStatus::darfWechselnZu → all 16 combinations
 Mirrors the issue's non-goals and adds whatever else you noticed while reading.
 
 ```
-Not touched:
-- Existing state-change logic in ErstelleRechnung
-- Dunning fees (no acceptance criterion asks for them)
-- Configurability of the 14-day period → hard-coded per the non-goals
-- No new dependency
+## Nicht angefasst
+- Bestehende Statuswechsel-Logik in ErstelleRechnung
+- Mahngebühren (kein Akzeptanzkriterium verlangt sie)
+- Konfigurierbarkeit der 14-Tage-Frist → laut Nicht-Zielen fest kodiert
+- Keine neue Abhängigkeit
 ```
 
 ### 6.5 Slice boundary — features only
@@ -96,7 +117,9 @@ Not touched:
 State plainly whether this plan **completes** the slice or only advances it:
 
 ```
-Slice: #142 — Buchhaltung sieht überfällige Rechnungen
+## Slice-Grenze
+Slice:        #142 — Buchhaltung sieht überfällige Rechnungen
+Meilenstein:  M2 — Mahnwesen
 Dieser Plan bringt den Slice voran (API + Statuswechsel).
 Offen bleibt: Anzeige in der Übersicht -> eigener PR, gleicher Slice.
 ```
@@ -116,7 +139,8 @@ One number. It is compared against the actual diff in review and by
 `tools/skill-eval/workflow_run.py`.
 
 ```
-Estimated: ~180 lines (of which ~90 tests)
+## Diff-Schätzung
+~180 Zeilen (davon ~90 Tests)
 ```
 
 ## What invalidates a plan

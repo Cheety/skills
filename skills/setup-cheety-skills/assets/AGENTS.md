@@ -14,25 +14,25 @@ tooling — lives in the profile:
 
 ## 0. Language
 
+**The instruction is English. The artifact is German.** That one sentence
+decides every case below.
+
 | Artifact | Language |
 |---|---|
 | Code, tools, profiles, fixtures, rules, skills, this file | **English** |
 | `README.md` | **German** |
-| **Issues, pull-request descriptions, review comments** | **German** |
+| **Issues, milestone plans (`docs/roadmap/`), implementation plans, pull-request descriptions, review comments** | **German** |
 | Commit subjects | **German**, with the fixed English prefixes `Test:`, `Impl:`, `Fix:`, `Doku:` |
 
-Issues and PR text are written in German because that is the language the team
-discusses work in. Everything else is English so the harness stays portable and
-readable to contributors who do not speak German.
+Everything the team discusses work in is German. Everything the harness is built
+from is English, so it stays portable and readable to contributors who do not
+speak German.
 
-Two places therefore contain German on purpose, and neither is an oversight:
-
-- `tools/skill-eval/rubric.py` matches German vague wording (`besser`,
-  `sinnvoll`, `performant`) and German solution wording. It checks issues, so it
-  has to speak their language.
-- `.claude/skills/write-issue/SKILL.md` and `code-review/SKILL.md` show German
-  example output inside English prose. The instruction is English, the artifact
-  is German.
+Wherever a tool or a skill *touches* a German artifact, German appears inside
+English on purpose and is not an oversight: `tools/skill-eval/rubric.py` and
+`tools/skill-eval/roadmap_check.py` match German wording and German headings
+because the files they check are German, and the workflow skills show German
+example output inside English prose.
 
 The commit prefixes stay English because `tools/skill-eval/cycle_check.py`
 matches them, and because they encode the phase of the cycle rather than the
