@@ -12,21 +12,23 @@ reference file named in the plan.
 Without the reference file you are guessing the house style. The profile
 describes it, the file demonstrates it.
 
-## Precondition — the confirmed plan comes from the issue
+## Precondition — read the hand-off
 
-Read the issue and its comments. The plan is the newest comment beginning with
-`## Umsetzungsplan (bestätigt)`, filed there by `make-plan`.
+Read the issue and its comments. The newest comment headed
+`## Umsetzungsplan (bestätigt)` is the confirmed plan, filed there by `make-plan`.
 
-**No such comment: stop.** Say that the plan is missing and point to `/plan #X`.
-Do not reconstruct the plan from the acceptance criteria — that is planning, it
-happens without a human confirming it, and the confirmation is the whole point
-(AGENTS.md §1). A plan pasted into the chat instead is acceptable *only* if the
-human pastes it in this session; then say so in the PR, because the ticket has no
-record of it.
+**No such comment: stop and point to `/plan #X`.** Confirming a plan is a human
+act (AGENTS.md §1), and a plan derived here from the acceptance criteria has been
+confirmed by nobody. A plan the human pastes into this session counts — say so in
+the pull request, because the ticket carries no record of it.
 
-The plan's `Betroffene Dateien`, `Schrittfolge` and `Testplan` are what you
-implement. Where the plan and the acceptance criteria disagree, the criteria win
-and the disagreement gets named out loud before you build anything.
+The plan's `Betroffene Dateien`, `Schrittfolge` and `Testplan` are the work.
+Where the plan and the acceptance criteria disagree, the criteria win and the
+disagreement is named out loud before the first commit.
+
+Deviating from the plan while building: **say so first, then deviate**, and note
+the deviation on the issue. A deviation the reviewer first meets in the diff
+makes the plan worthless.
 
 ## The core sentence
 
