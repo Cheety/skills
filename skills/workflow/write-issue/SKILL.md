@@ -1,6 +1,6 @@
 ---
 name: write-issue
-description: Turns a vague observation, idea or bug report into a complete, actionable issue with acceptance criteria and non-goals. Use this skill whenever somebody describes a bug, wants a feature, says "we should really...", "can you make a ticket for that", "this is broken" or similar — even when the words issue or ticket never appear. Also use it when splitting an oversized issue. Do not use it when a finished issue already exists and only needs implementing.
+description: Turns a vague observation, idea or bug report into a complete, actionable issue with acceptance criteria and non-goals. Use this skill whenever somebody describes a bug, wants a feature, says "we should really...", "can you make a ticket for that", "this is broken" or similar — even when the words issue or ticket never appear. Also use it when splitting an oversized issue, and to recognise when the input is not one issue at all but a whole specification — it then routes to `split-spec` instead of writing one. Do not use it when a finished issue already exists and only needs implementing.
 ---
 
 # Write an issue
@@ -22,6 +22,48 @@ is unclear. Models fill gaps with plausible assumptions. Every gap in the issue
 becomes an invented requirement in the code.
 
 The time spent here comes back threefold in review.
+
+## First: is this one issue, or a specification?
+
+Decide this before anything else, because the two need different artifacts and
+the wrong one is expensive in a way that is not visible for weeks.
+
+Count the signals. **Two or more, and this is not an issue** — invoke `split-spec`
+and stop here:
+
+| Signal | What it looks like |
+|---|---|
+| It arrives as a document | a file, a table of contents, numbered top-level sections |
+| It names systems, not behaviour | three or more capabilities that different people could build in different weeks |
+| It carries an ordering | phases, a dependency graph, "erst X, dann Y", "Implementierungsreihenfolge" |
+| The slice sentence needs "und" twice | or comes out as "die Plattform existiert dann" |
+| One split is not enough | the parts of the first cut are each still `L` |
+
+### The dividing line, when it is close
+
+An `L` feature and a specification both get split, so the count above can feel
+arbitrary at the edge. The question that separates them:
+
+> **Do the parts have to be built in a particular order, and does something break
+> if they are not?**
+
+If the parts can be built in any order, it is a normal split — a table of
+sub-issues, right here, per *Special cases in the output format*. If the order
+carries the risk, the order is the artifact, and it needs a roadmap that outlives
+the issues. That is `split-spec`.
+
+### Two ways to get this wrong
+
+**Writing one enormous issue "and splitting it later".** Later never has the
+context this conversation has. The document is in front of you now.
+
+**Splitting a spec straight into eighty issues.** It looks like progress and it
+loses the ordering, which was the most expensive thing in the document. There is
+a level between spec and issue and it is not optional.
+
+When only *part* of the input is a spec — somebody describes a bug and attaches
+the architecture document as background — write the issue. The spec is `Kontext`,
+not the subject.
 
 ## Procedure
 
@@ -140,10 +182,35 @@ repository and copies the wrong pattern.
 
 ```
 ## Kontext
-Betroffen:    app/Actions/Rechnung/, app/Enums/RechnungStatus.php
-Stil-Vorbild: app/Actions/Rechnung/ErstelleRechnung.php
-Verwandt:     #128 (dort wurde der Statuswechsel eingeführt)
+Betroffen:     app/Actions/Rechnung/, app/Enums/RechnungStatus.php
+Stil-Vorbild:  app/Actions/Rechnung/ErstelleRechnung.php
+Verwandt:      #128 (dort wurde der Statuswechsel eingeführt)
+Blockiert von: #131 (der Statuswechsel muss vorher existieren)
 ```
+
+`Verwandt` and `Blockiert von` are different claims and the difference matters:
+one is a hyperlink, the other is a constraint. `Verwandt` may be ignored;
+`Blockiert von` means starting earlier produces a merge conflict, a second
+half-implementation, or a migration that has to be undone. Leave the line out
+when nothing blocks — do not write `Blockiert von: —` to fill it.
+
+Issues that came out of a `split-spec` run also carry the milestone they belong
+to, so the ordering survives the trip into the tracker:
+
+```
+Meilenstein:   M5 — Linked Accounts + Modul Discord Login
+```
+
+**Greenfield: `Stil-Vorbild` may be empty, and then it says so.** Before the
+first code exists there is no exemplar, and inventing a path is worse than
+admitting there is none — the next session will open it and find nothing, or
+worse, find something unrelated and copy it.
+
+```
+Stil-Vorbild:  keins — dies ist das Vorbild für alles Weitere
+```
+
+`Betroffen:` still names paths, even paths that do not exist yet.
 
 ## Special cases in the output format
 
@@ -153,6 +220,10 @@ decision is lost and the same request returns in two weeks.
 **Split (was `L`).** Instead of problem and acceptance criteria: a table of the
 sub-issues with size and a column "useful without the rest?". A part that answers
 no is cut along a technical layer and must be decomposed again.
+
+This is the one-level split, for a single oversized issue. If the parts have to
+be built in a particular order, this file is the wrong artifact — go back to
+*First: is this one issue, or a specification?* and use `split-spec`.
 
 **Rejected in this form.** Why the scope is not workable, plus the open questions
 whose answers would produce a workable one.
@@ -188,9 +259,11 @@ erwartet vs. tatsächlich, Umgebung.]
 - ...
 
 ## Kontext
-Betroffen:    ...
-Stil-Vorbild: ...
-Verwandt:     #...
+Meilenstein:   ...   ← nur nach einem split-spec-Lauf
+Betroffen:     ...
+Stil-Vorbild:  ...
+Verwandt:      #...
+Blockiert von: #...   ← nur wenn etwas blockiert
 
 ## Offene Fragen
 - [ ] ...   ← muss vor Umsetzungsbeginn geklärt sein
@@ -198,6 +271,8 @@ Verwandt:     #...
 
 ## Self-check before handing over
 
+- [ ] Was this really one issue, rather than a specification? (fewer than two
+      signals from the table at the top)
 - [ ] Does *Problem* really contain only the observation?
 - [ ] Is every acceptance criterion answerable yes/no?
 - [ ] Are there at least two non-goals?

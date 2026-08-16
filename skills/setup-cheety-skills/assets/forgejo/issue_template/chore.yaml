@@ -25,3 +25,29 @@ body:
       label: Nicht-Ziele
     validations:
       required: true
+
+  - type: textarea
+    id: kontext
+    attributes:
+      label: Kontext
+      description: >
+        Ohne Pfad sucht die Umsetzungssitzung im ganzen Repository. Meilenstein
+        und "Blockiert von" tragen die Reihenfolge aus dem Fahrplan in den
+        Tracker - ohne sie ist sie nach dem Aufteilen weg.
+      value: |
+        Meilenstein:   
+        Betroffen:     
+        Blockiert von: #
+    validations:
+      required: true
+
+  - type: dropdown
+    id: groesse
+    attributes:
+      label: Groesse
+      description: L wird nicht bearbeitet, sondern aufgeteilt.
+      options:
+        - S (< 100 Zeilen)
+        - M (< 400 Zeilen)
+    validations:
+      required: true

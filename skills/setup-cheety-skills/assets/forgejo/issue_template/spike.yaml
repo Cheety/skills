@@ -1,0 +1,66 @@
+name: Spike
+about: Zeitlich begrenzte Untersuchung, kein Produktionscode
+title: '[Spike]: '
+labels:
+  - spike
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ein Spike beantwortet **eine** Frage in **begrenzter** Zeit. Ohne
+        Zeitbudget und ohne festgelegtes Ergebnisformat wird daraus eine
+        Umsetzung ohne Akzeptanzkriterien.
+
+  - type: textarea
+    id: frage
+    attributes:
+      label: Frage
+      description: Genau eine, mit ja/nein oder einer Zahl beantwortbar.
+      placeholder: >
+        Haelt die Rate-Limit-Strategie des Anbieters bei 500 Abfragen pro Minute,
+        oder brauchen wir einen zweiten API-Key?
+    validations:
+      required: true
+
+  - type: input
+    id: zeitbudget
+    attributes:
+      label: Zeitbudget
+      description: Nach Ablauf wird abgebrochen und berichtet, was bis dahin bekannt ist.
+      placeholder: 4 Stunden
+    validations:
+      required: true
+
+  - type: textarea
+    id: ergebnis
+    attributes:
+      label: Ergebnisformat
+      description: Was liegt am Ende vor? Ein Dokument, eine Messreihe, ein Wegwerf-Prototyp.
+      placeholder: |
+        Notiz in docs/spikes/ mit Messwerten und einer Empfehlung
+    validations:
+      required: true
+
+  - type: textarea
+    id: nichtziele
+    attributes:
+      label: Nicht-Ziele
+      description: >
+        Pflichtfeld. "Kein Produktionscode" steht hier nicht zufaellig als
+        erstes: Ein Spike, dessen Ergebnis gemergt wird, war kein Spike.
+      value: |
+        - Kein Produktionscode, kein Merge des Prototyps
+        -
+    validations:
+      required: true
+
+  - type: textarea
+    id: kontext
+    attributes:
+      label: Kontext
+      value: |
+        Meilenstein:
+        Betroffen:
+        Blockiert von: #
+    validations:
+      required: true

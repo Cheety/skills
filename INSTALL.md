@@ -3,11 +3,11 @@
 ## Für Nutzer: ins eigene Projekt installieren
 
 ```bash
-# 1. Skills holen — Setup, ein Stack, und die sieben Workflow-Skills
+# 1. Skills holen — Setup, ein Stack, und die acht Workflow-Skills
 npx skills@latest add cheety/skills \
   --skill setup-cheety-skills \
   --skill harness-laravel \
-  --skill write-issue --skill make-plan --skill implement-feature \
+  --skill write-issue --skill split-spec --skill make-plan --skill implement-feature \
   --skill fix-bug --skill write-tests --skill write-migration --skill code-review
 
 # 2. Harness ins Projekt schreiben — nur der gewählte Stack
@@ -111,7 +111,7 @@ skills/
 │   ├── harness-laravel/    Profilbeschreibung, 29 Regeln
 │   ├── harness-typescript/ 25 Regeln
 │   └── harness-python/     20 Regeln
-└── workflow/               die sieben stackneutralen Arbeitsschritte
+└── workflow/               die acht stackneutralen Arbeitsschritte
 ```
 
 Die Assets liegen bewusst in `setup-cheety-skills`, nicht in den Stack-Skills: So kann

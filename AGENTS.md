@@ -18,6 +18,7 @@ proved it within a day.
 | Are all skills discoverable? | `python3 scripts/skills_check.py .` |
 | What will users see? | `npx skills@latest add ./ --list` |
 | Do the rules still hold? | `python3 skills/setup-cheety-skills/assets/tools/arch-check/eval.py --profile laravel --fixtures skills/setup-cheety-skills/assets/stacks/laravel/fixtures` |
+| Do the roadmap rules still hold? | `python3 skills/setup-cheety-skills/assets/tools/skill-eval/roadmap_check.py --self-test` |
 | Does an install work end to end? | `node skills/setup-cheety-skills/install.mjs --stack python --target /tmp/probe` |
 
 ## Editing rules

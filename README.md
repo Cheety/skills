@@ -25,7 +25,7 @@ Vollständige Anleitung: [`INSTALL.md`](INSTALL.md).
 | `profiles/<stack>/PROFILE.md` | Wie die Prinzipien in diesem Stack aussehen |
 | `.forgejo/`, `.github/` oder `.gitlab/` + `.gitlab-ci.yml` | Workflows, Issue- und PR-/MR-Vorlagen der gewählten Forge |
 | `FORGES.md` | Die Unterschiede zwischen den drei Forges, die still fehlschlagen |
-| `.claude/commands/` | `/issue` `/plan` `/implement` `/bug` `/review` |
+| `.claude/commands/` | `/issue` `/spec` `/plan` `/implement` `/bug` `/review` |
 
 **Nur der gewählte Stack.** `npx skills` kennt keine Stacks — es installiert
 Skill-Verzeichnisse. Die Auswahl passiert deshalb im Installer.
@@ -35,13 +35,13 @@ Skill-Verzeichnisse. Die Auswahl passiert deshalb im Installer.
 Syntax der Forge passen — eine aus einer anderen Forge kopierte Datei läuft dort
 oft *fast*.
 
-## Die elf Skills
+## Die zwölf Skills
 
 | Gruppe | Skills |
 |---|---|
 | Setup | `setup-cheety-skills` — Bootstrap, trägt Installer und alle Profile |
 | Stacks | `harness-laravel` · `harness-typescript` · `harness-python` |
-| Ablauf | `write-issue` · `make-plan` · `implement-feature` · `fix-bug` · `write-tests` · `write-migration` · `code-review` |
+| Ablauf | `write-issue` · `split-spec` · `make-plan` · `implement-feature` · `fix-bug` · `write-tests` · `write-migration` · `code-review` |
 
 Die Ablauf-Skills sind stackneutral. Was konkret gilt, steht im Profil.
 
@@ -56,6 +56,33 @@ Drei Sätze tragen alles Weitere:
 3. **Wer einen PR öffnet, ist der Autor** — unabhängig davon, wer getippt hat.
 
 Der Rest sind Mechanismen, die das durchsetzbar machen.
+
+### Zwischen Spezifikation und Issue liegt eine Ebene
+
+Ein Architekturpapier ist kein Issue und wird auch keines, indem man es
+aufteilt. `write-issue` erkennt das selbst — zählt es zwei der Signale
+(Dokument statt Satz, Systeme statt Verhalten, eine Reihenfolge, ein Slice-Satz
+mit zwei „und"), übergibt es an `split-spec`.
+
+```
+Spec  ──►  Meilenstein  ──►  Issue  ──►  Pull Request
+```
+
+Der übersprungene Mittelschritt ist der teure. Die Issues werden dabei ganz
+brauchbar; verloren geht die **Reihenfolge** — was vor was existieren muss und
+was kaputtgeht, wenn man sie verletzt. Dafür hat ein Issue kein Feld.
+`Verwandt: #142` ist ein Querverweis, keine Bedingung.
+
+Der Fahrplan ist deshalb eine **Datei im Repository**, kein Issue: Issues werden
+geschlossen, die Baureihenfolge muss im vierten Monat noch lesbar sein. Und sie
+wird geprüft, denn genau sie verfällt still:
+
+```bash
+python3 tools/skill-eval/roadmap_check.py docs/roadmap
+```
+
+Hängende Verweise, Zyklen, und Meilensteine in einer Reihenfolge, in der niemand
+bauen kann — oben nach unten *ist* die Baureihenfolge, sonst liest sie keiner.
 
 ### Regeln gehören ins Werkzeug
 
@@ -112,7 +139,7 @@ skills/
 │   ├── install.mjs          Stack-Auswahl passiert hier
 │   └── assets/              AGENTS.md, tools/, forgejo/, github/, gitlab/, commands/, stacks/
 ├── stacks/                  harness-{laravel,typescript,python}
-└── workflow/                die sieben Arbeitsschritte
+└── workflow/                die acht Arbeitsschritte
 scripts/skills_check.py      prüft dieses Repo als Skill-Quelle
 .github/workflows/           CI dieses Repos (nicht die ausgelieferte)
 ```

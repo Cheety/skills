@@ -101,6 +101,10 @@ Dieser Plan bringt den Slice voran (API + Statuswechsel).
 Offen bleibt: Anzeige in der Übersicht -> eigener PR, gleicher Slice.
 ```
 
+When the issue names a milestone, the plan repeats it — a plan that silently
+advances a different milestone than the issue claims is how the build order comes
+apart one issue at a time.
+
 If the plan would exceed 400 lines or eight files, **split the pull request, not
 the slice**. Cutting the slice by layer to make a PR small enough is the failure
 this section exists to prevent — layers fit comfortably under the limit and slices
@@ -125,6 +129,17 @@ Abort and ask instead of delivering a plan when:
 - Authentication, authorization, payments or data migration are affected without
   the issue naming them explicitly
 - More than eight files would be touched
+
+Two of these read differently when the issue came out of a `split-spec` run, and
+the difference is not a loophole:
+
+- **A dependency `chore` is not blocked by the dependency rule.** Adding the
+  package *is* the issue, the justification is in it, and it was decided at the
+  roadmap level rather than in passing (AGENTS.md §2.6). What still aborts is a
+  feature that brings a package along with it.
+- **`Blockiert von: #131` has to be closed before this plan starts.** Planning
+  against an unbuilt precondition produces assumptions about code somebody else
+  is still writing. Say so and stop; that is a scheduling answer, not a design one.
 
 ## After confirmation
 
