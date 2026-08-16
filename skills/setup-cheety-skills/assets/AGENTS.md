@@ -342,7 +342,10 @@ Not yet automated:
 
 ## 7. Working practice
 
-**Plan before implementation, no code.** See `.claude/skills/plan-erstellen/`.
+**Plan before implementation, no code.** Skill `make-plan`. The confirmed plan is
+appended to the issue as a comment headed `## Umsetzungsplan (bestätigt)`, and
+that comment — not a transcript — is what the implementation session reads.
+Planning and implementing are two sessions; `make-plan` ends at the confirmation.
 
 **One issue, one session.** Context from issue A produces wrong patterns in issue B.
 

@@ -1,6 +1,6 @@
 ---
 name: implement-feature
-description: Implements a feature issue in code — strictly along the acceptance criteria and without extra abstraction. Stack-neutral; the concrete idioms come from profiles/<stack>/PROFILE.md. Use this skill for every implementation of new behaviour, that is whenever a confirmed plan exists or somebody says "build the feature", "implement issue #X", "add X", regardless of language or framework. Contains the countermeasures against over-engineering and the test-first cycle.
+description: Implements a feature issue in code — strictly along the acceptance criteria and without extra abstraction, working from the confirmed plan filed on the issue. Stack-neutral; the concrete idioms come from profiles/<stack>/PROFILE.md. Use this skill for every implementation of new behaviour, that is whenever a confirmed plan exists or somebody says "build the feature", "implement issue #X", "add X", regardless of language or framework. Contains the countermeasures against over-engineering and the test-first cycle.
 ---
 
 # Implement a feature
@@ -12,7 +12,21 @@ reference file named in the plan.
 Without the reference file you are guessing the house style. The profile
 describes it, the file demonstrates it.
 
-Precondition: a confirmed plan (skill `make-plan`). Do not start without one.
+## Precondition — the confirmed plan comes from the issue
+
+Read the issue and its comments. The plan is the newest comment beginning with
+`## Umsetzungsplan (bestätigt)`, filed there by `make-plan`.
+
+**No such comment: stop.** Say that the plan is missing and point to `/plan #X`.
+Do not reconstruct the plan from the acceptance criteria — that is planning, it
+happens without a human confirming it, and the confirmation is the whole point
+(AGENTS.md §1). A plan pasted into the chat instead is acceptable *only* if the
+human pastes it in this session; then say so in the PR, because the ticket has no
+record of it.
+
+The plan's `Betroffene Dateien`, `Schrittfolge` and `Testplan` are what you
+implement. Where the plan and the acceptance criteria disagree, the criteria win
+and the disagreement gets named out loud before you build anything.
 
 ## The core sentence
 

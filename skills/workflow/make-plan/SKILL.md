@@ -1,6 +1,6 @@
 ---
 name: make-plan
-description: Produces a verifiable implementation plan with affected files, step sequence, stated assumptions and an explicit out-of-scope list, before any code exists. Use this skill as the mandatory first step for every issue, bug fix, refactor and larger change — including when somebody says "just implement X", "build me Y" or "fix that". Code may only be written after a human has confirmed the plan.
+description: Produces a verifiable implementation plan with affected files, step sequence, stated assumptions and an explicit out-of-scope list, before any code exists, and files the confirmed plan on the issue. Use this skill as the mandatory first step for every issue, bug fix, refactor and larger change — including when somebody says "just implement X", "build me Y" or "fix that". This skill never writes code, not even after confirmation; implementation is a separate session with the skill `implement-feature`.
 ---
 
 # Make a plan
@@ -17,7 +17,8 @@ A wrong plan costs two minutes. A wrong diff costs an hour of review. This is th
 design document at the scale of a single issue and the cheapest place to abandon
 a dead end.
 
-**Rule: no code before the plan is confirmed.** Not even "just the beginning".
+**Rule: no code in this skill at all.** Not before the confirmation, and not
+after it. Confirmation ends this session's work — see *After confirmation* below.
 
 ## Structure of the plan
 
@@ -165,8 +166,76 @@ the difference is not a loophole:
   against an unbuilt precondition produces assumptions about code somebody else
   is still writing. Say so and stop; that is a scheduling answer, not a design one.
 
-## After confirmation
+## After confirmation — the plan goes into the ticket, not into code
 
-The confirmed plan becomes the working basis. If the implementation deviates —
-because something turns out to be wrong while building — **say so first, then
-deviate.** A silent deviation makes the plan worthless and surprises the reviewer.
+A confirmation is permission to *record* the plan, not permission to start
+building. Two things happen, in this order, and then this session is over:
+
+1. **Append the confirmed plan to the issue** as a comment.
+2. **Stop.** Name the next command and write nothing else.
+
+```
+Plan als Kommentar an #21 angehängt.
+Umsetzung mit: /implement #21
+```
+
+Continuing into the implementation in the same session is the failure this
+section exists to prevent. It looks efficient and costs the two properties the
+split is there for: the plan is only in the transcript, so the next session and
+the reviewer cannot read what was agreed; and the context that produced the plan
+— every file read while writing it, every rejected alternative — silently becomes
+implementation context, which is exactly what "one issue, one session"
+(AGENTS.md §7) forbids.
+
+### The comment format
+
+The comment is German, like the issue, and begins with a fixed heading so
+`implement-feature` can find it mechanically:
+
+```markdown
+## Umsetzungsplan (bestätigt)
+
+Bestätigt am 2026-08-16 von @semyon.
+
+[the plan verbatim, all its headings unchanged:
+ Problem wie verstanden · Annahmen · Betroffene Dateien · Schrittfolge ·
+ Testplan · Nicht angefasst · Slice-Grenze · Diff-Schätzung]
+```
+
+Verbatim means verbatim. Do not summarise the plan for the comment — a shortened
+plan in the ticket and a full plan in a closed transcript is worse than no plan,
+because the next session trusts the short one.
+
+If assumptions were confirmed, corrected or dropped in the conversation, the
+comment carries the **confirmed** version, and the correction is visible:
+
+```markdown
+- Die Frist wird in der Zeitzone des Nutzers gerechnet   ← bestätigt, war unsicher
+- ~~Der Aktivator liest die Statusdatei beim Start~~     ← verworfen, siehe Diskussion
+```
+
+### How it gets there
+
+Whatever the forge offers, in this order:
+
+```bash
+tea comment 21 --body-file plan.md          # Forgejo
+gh issue comment 21 --body-file plan.md     # GitHub
+glab issue note 21 --message "$(cat plan.md)"  # GitLab
+```
+
+If no forge CLI is configured, **do not invent an API call with a token you
+guessed.** Output the comment as a fenced block ready to paste and say plainly
+that it still has to be pasted. An unposted plan that the human knows about is
+recoverable; a plan the session believes it filed and did not is not.
+
+Post the plan **once**. Replanning after a rejection appends a new comment rather
+than editing the old one — the rejected version is part of the record, and the
+newest `## Umsetzungsplan (bestätigt)` comment is the one that counts.
+
+### Then, in the implementation session
+
+The confirmed plan in the ticket is the working basis. If the implementation
+deviates — because something turns out to be wrong while building — **say so
+first, then deviate**, and note the deviation on the issue. A silent deviation
+makes the plan worthless and surprises the reviewer.
