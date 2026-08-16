@@ -122,6 +122,23 @@ workflow file that is otherwise valid. Two ways out:
 `tools/forge_check.py` fails a Forgejo job that combines a non-node image with a `uses:`
 step, so the next one is caught before it runs rather than after.
 
+### 7. `ports:` on a service collides with the next job
+
+A Forgejo runner is a long-lived machine that runs several jobs at once. `ports: ['5432:5432']`
+publishes the service on that shared host, so the second job to start loses the race:
+
+```
+failed to start container: … Bind for 127.0.0.1:6379 failed: port is already allocated
+```
+
+It reads like a broken runner, but it is the workflow file. On GitHub the same line is
+harmless — each job gets its own VM — which is why it survives being copied over.
+
+Drop `ports:` on Forgejo. The job runs in a container on the same network as the services
+and reaches them by service name on the container port (`postgres:5432`), which is what the
+workflows here already do. `tools/forge_check.py` fails a Forgejo workflow that publishes
+service ports.
+
 ### Services on GitHub-hosted runners
 
 A job on `ubuntu-latest` runs on the host, not inside a container, so services are reached

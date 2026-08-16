@@ -116,6 +116,7 @@ def check_actions_workflows(base: Path, root: Path, forge: str) -> list[str]:
                 findings.append(f"{rel}: job `{name}` has no runs-on")
             if forge == "forgejo":
                 findings += check_node_in_container(rel, name, job)
+                findings += check_service_ports(rel, name, job)
 
     return findings
 
@@ -144,6 +145,32 @@ def check_node_in_container(rel: Path, name: str, job: dict) -> list[str]:
     return [f"{rel}: job `{name}` runs in `{image}`, which carries no node, but uses "
             f"the JavaScript action `{uses[0]}`. Forgejo does not provide node inside "
             f"the container — use a node-based image or replace the action with a run step"]
+
+
+def check_service_ports(rel: Path, name: str, job: dict) -> list[str]:
+    """`ports:` on a service publishes it on the *runner host*.
+
+    On GitHub that host is a fresh VM per job, so nobody notices. A Forgejo
+    runner is long-lived and runs several jobs at once: the second one to ask
+    for 5432 dies before the first step, with
+
+        Bind for 127.0.0.1:6379 failed: port is already allocated
+
+    which reads like a broken runner rather than a workflow bug. The mapping
+    buys nothing either — the job container shares a network with the services
+    and reaches them by service name on the container port.
+    """
+    findings = []
+    services = job.get("services")
+    if not isinstance(services, dict):
+        return []
+    for svc, spec in services.items():
+        if isinstance(spec, dict) and spec.get("ports"):
+            findings.append(
+                f"{rel}: job `{name}` publishes `ports:` for service `{svc}`. A Forgejo "
+                f"runner is a shared host — a second concurrent job fails with `port is "
+                f"already allocated`. Drop `ports:` and reach the service by its name")
+    return findings
 
 
 def check_actions_issue_templates(base: Path, root: Path, forge: str) -> list[str]:

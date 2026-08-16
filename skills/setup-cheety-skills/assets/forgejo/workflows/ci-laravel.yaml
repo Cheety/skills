@@ -23,6 +23,13 @@ jobs:
     # services: requires a runner with Docker access. Where the runner has no
     # Docker, use a container: block with Postgres preinstalled, or start the
     # database inside the step.
+    #
+    # Deliberately no `ports:`. Unlike GitHub-hosted runners, a Forgejo runner
+    # is a long-lived shared host: publishing 5432/6379 to it means the second
+    # concurrent job dies with "Bind for 127.0.0.1:6379 failed: port is already
+    # allocated". Not needed either — the job runs in a container on the same
+    # network as the services, so it reaches them by service name on the
+    # container port.
     services:
       postgres:
         image: postgres:16
@@ -30,7 +37,6 @@ jobs:
           POSTGRES_DB: testing
           POSTGRES_USER: testing
           POSTGRES_PASSWORD: testing
-        ports: ['5432:5432']
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -38,7 +44,6 @@ jobs:
           --health-retries 5
       redis:
         image: redis:7
-        ports: ['6379:6379']
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
