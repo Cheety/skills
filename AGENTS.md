@@ -30,9 +30,16 @@ proved it within a day.
 
 ## Language
 
-Code, tools, profiles, fixtures, rules, skills and documentation are **English**.
-`README.md`, `INSTALL.md`, issues, pull-request text, review comments and commit
-subjects are **German**.
+**The instruction is English. The artifact is German.**
+
+Code, tools, profiles, fixtures, rules, skills and documentation are **English**
+— including every `SKILL.md`, whatever language the output it describes is in.
+`README.md`, `INSTALL.md`, issues, milestone plans, implementation plans,
+pull-request text, review comments and commit subjects are **German**.
+
+A skill that produces a German artifact says so in one line under its title and
+shows its examples in German. The canonical wording of the rule lives in
+`skills/setup-cheety-skills/assets/AGENTS.md` § 0.
 
 ## Commit Messages
 
