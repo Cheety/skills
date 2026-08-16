@@ -8,7 +8,7 @@ skills` installs skill directories and cannot reach outside them:
 > **`skills/setup-cheety-skills/assets/`**
 
 Its `AGENTS.md` is the canonical rule set. There is deliberately no second copy
-at the root — a second copy drifts, and an earlier version of this repository
+at the root: a second copy drifts, and an earlier version of this repository
 proved it within a day.
 
 ## Working on this repository
@@ -68,8 +68,8 @@ code they generate (PHPDoc in PHP, TSDoc in TypeScript).
 
 **The instruction is English. The artifact is German.**
 
-Code, tools, profiles, fixtures, rules, skills and documentation are **English**
-— including every `SKILL.md`, whatever language the output it describes is in.
+Code, tools, profiles, fixtures, rules, skills and documentation are **English**,
+including every `SKILL.md`, whatever language the output it describes is in.
 `README.md`, `INSTALL.md`, issues, milestone plans, implementation plans,
 pull-request text, review comments and commit subjects are **German**.
 
