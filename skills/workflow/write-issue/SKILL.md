@@ -7,7 +7,11 @@ description: Turns a vague observation, idea or bug report into a complete, acti
 
 **Issues are written in GERMAN.** This skill file is English; the artifact it
 produces is German — see AGENTS.md, "Language". Section headings must be
-`## Problem`, `## Akzeptanzkriterien`, `## Nicht-Ziele`, `## Kontext`,
+`## Slice
+[Feature-Issues: ein Satz. Was kann ein Nutzer danach tun, was vorher nicht ging?
+Bei chore und spike entfällt dieser Abschnitt.]
+
+## Problem`, `## Akzeptanzkriterien`, `## Nicht-Ziele`, `## Kontext`,
 `## Offene Fragen`, because `tools/skill-eval/rubric.py` checks them.
 
 ## Why this is the most important step
@@ -56,12 +60,50 @@ Do not guess. An issue with an open question beats one with an invented answer.
 
 Size: `S` under 100 diff lines, `M` under 400, `L` must be split.
 
-**An `L` issue is not written, it is decomposed.** Split along shippable steps,
-not along technical layers. "Migration", "model", "controller", "frontend" is the
+**An `L` issue is not written, it is decomposed.** Split into slices — shippable
+steps, each with its own answer to the slice question — not along technical
+layers. "Migration", "model", "controller", "frontend" is the
 wrong split — none of those parts is useful on its own. Right: "create invoice
 (draft only)", "send invoice", "record payment".
 
-### 4. Write the acceptance criteria
+### 4. Name the slice — feature issues only
+
+One sentence, in a `## Slice` section:
+
+> **What can a user do afterwards that they could not do before?**
+
+```
+## Slice
+Die Buchhaltung sieht überfällige Rechnungen in der Übersicht, ohne die
+Tabelle händisch zu führen.
+```
+
+This is the strongest filter against speculative work there is — stronger than
+the non-goals list, because it fails loudly. If the honest answer is "nothing
+yet, this is groundwork", the issue is not a feature: make it a `chore` or a
+`spike`. Both are legitimate; a feature that ships nothing usable is not.
+
+**A slice cuts through every layer it needs** — schema, domain, edge, UI. Do not
+cut along layers. "Migration", "model", "controller", "frontend" is the wrong
+split; none of those is useful alone.
+
+**Do not force the slice to fit into one pull request.** A full-stack slice
+regularly exceeds the 400-line review limit. That is expected: the slice ships as
+several PRs (API behind a flag, then UI, then flag removal). Splitting the *PR*
+is right; splitting the *slice* by layer to make it small is the mistake this
+section exists to prevent.
+
+`chore` and `spike` issues carry no `## Slice` section — see AGENTS.md §2.5 for
+the work that is legitimately horizontal.
+
+**The rubric only checks that the section exists, not that the slice is really
+vertical.** That is deliberate. An earlier version tried to detect layer-shaped
+sentences by keyword and failed on its own example: *"ohne die Tabelle händisch
+zu führen"* describes the manual process being replaced, not a database table.
+Verticality is a judgement call — the machine can insist the question is asked,
+not that the answer is good.
+
+### 5. Write the acceptance criteria
 
 Every line must be answerable with yes or no, without discussion.
 
@@ -74,7 +116,7 @@ Good:  - [ ] Bei nicht erreichbarem Zahlungsdienst bleibt die Bestellung in
              Status `Ausstehend` und der Job wird dreimal wiederholt
 ```
 
-### 5. Write the non-goals — required field
+### 6. Write the non-goals — required field
 
 This is the single most effective measure against over-engineering and the only
 place where "just do that too while you're in there" is forbidden in writing.
@@ -91,7 +133,7 @@ Good starting point: what would a diligent model build here in addition?
 
 An empty non-goals section means: not thought through yet. Ask.
 
-### 6. Set context anchors
+### 7. Set context anchors
 
 Name concrete paths. Without them the implementation session searches the whole
 repository and copies the wrong pattern.
@@ -159,6 +201,8 @@ Verwandt:     #...
 - [ ] Does *Problem* really contain only the observation?
 - [ ] Is every acceptance criterion answerable yes/no?
 - [ ] Are there at least two non-goals?
+- [ ] For a feature: does `## Slice` name something a user can do afterwards,
+      rather than a layer that was built?
 - [ ] Is the size `S` or `M`?
 - [ ] Could somebody start from this without today's conversation?
 

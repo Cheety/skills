@@ -1,5 +1,18 @@
 Schliesst #
 
+## Slice
+
+Gehört zu Slice: #___
+
+- [ ] Dieser PR **schließt** den Slice ab — die Slice-Aussage ist danach in
+      Produktion wahr
+- [ ] Dieser PR **bringt den Slice voran**, der Rest folgt in: #___
+- [ ] Kein Slice (chore, spike, Migration, Abhängigkeit, Observability)
+
+Ein Slice darf mehrere PRs haben. Was zusammen shippt, muss nicht zusammen
+reviewt werden — 400 Zeilen bleiben die Grenze für **diesen** PR, nicht für den
+Slice. Siehe AGENTS.md §2.5.
+
 ## Was und warum
 
 <!-- Zwei bis vier Saetze. Der Diff zeigt das Was, hier steht das Warum. -->

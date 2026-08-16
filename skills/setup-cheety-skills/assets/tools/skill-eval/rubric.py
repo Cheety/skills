@@ -26,7 +26,8 @@ SOLUTION = ["cache einbauen", "index anlegen", "redis", "refactor",
 # German section headings, because the issues themselves are German.
 SECTIONS = {"problem": "Problem", "criteria": "Akzeptanzkriterien",
             "non_goals": "Nicht-Ziele", "context": "Kontext",
-            "questions": "Offene Fragen"}
+            "questions": "Offene Fragen", "slice": "Slice"}
+
 
 
 def section(text, name):
@@ -70,6 +71,21 @@ for path in sorted(directory.glob("*.md")):
     e["R7 size S/M or split"] = (
         size in ("S", "M") or "AUFGETEILT" in size or "BLOCKIERT" in size,
         f"size: {size}")
+
+    # R10 — feature issues name their slice. ONLY its presence is checked.
+    #
+    # An earlier version also tried to detect layer-shaped slice sentences by
+    # keyword. It failed on its own example: "ohne die Tabelle haendisch zu
+    # fuehren" describes the manual process being replaced, not a database
+    # table. Whether a slice is genuinely vertical is a human judgement; a
+    # keyword list only produces false positives, and a false positive teaches
+    # people to ignore the tool.
+    #
+    # chore and spike are legitimately horizontal (AGENTS.md 2.5) and are not asked.
+    if kind == "feature" and not special:
+        slice_text = section(t, SECTIONS["slice"])
+        e["R10 slice named"] = (bool(slice_text),
+                                "" if slice_text else "## Slice missing")
 
     if kind == "bug":
         repro = bool(re.search(r"^\s*\d\.\s+\S", problem, re.M))

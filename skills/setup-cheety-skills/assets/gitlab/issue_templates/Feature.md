@@ -12,6 +12,11 @@ Die Beobachtung, nicht die Loesung. "Cache invalidieren" ist eine Loesung.
 "Nach dem Speichern erscheinen kurz die alten Werte" ist ein Problem.
 -->
 
+## Slice
+
+<!-- Ein Satz: Was kann ein Nutzer danach tun, was vorher nicht ging? Lautet die ehrliche Antwort „noch nichts, das ist Vorarbeit“, ist es kein Feature, sondern ein chore oder spike. -->
+<!-- Beispiel: Die Buchhaltung sieht überfällige Rechnungen in der Übersicht, ohne die Tabelle händisch zu führen. -->
+
 ## Akzeptanzkriterien
 
 <!-- Jede Zeile muss mit ja oder nein beantwortbar sein, ohne Diskussion. -->

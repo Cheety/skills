@@ -16,6 +16,16 @@ body:
       required: true
 
   - type: textarea
+    id: slice
+    attributes:
+      label: Slice
+      description: >
+        Ein Satz: Was kann ein Nutzer danach tun, was vorher nicht ging? Lautet die ehrliche Antwort „noch nichts, das ist Vorarbeit“, ist es kein Feature, sondern ein chore oder spike.
+      placeholder: Die Buchhaltung sieht überfällige Rechnungen in der Übersicht, ohne die Tabelle händisch zu führen.
+    validations:
+      required: true
+
+  - type: textarea
     id: akzeptanz
     attributes:
       label: Akzeptanzkriterien

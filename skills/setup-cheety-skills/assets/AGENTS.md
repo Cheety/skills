@@ -132,6 +132,57 @@ without a comment carrying an issue number.
 
 ---
 
+## 2.5 Slices and pull requests
+
+A slice is a **shippable step**: after it, somebody can do something they could
+not do before. It cuts through every layer it needs — schema, domain, edge, UI —
+and it is useful on its own. Splitting along technical layers ("migration",
+"model", "controller", "frontend") is forbidden, because none of those parts is
+useful alone and the integration surprises all arrive at the end.
+
+Every feature issue therefore answers one question, in the `## Slice` section:
+
+> **What can a user do afterwards that they could not do before?**
+
+If the honest answer is "nothing yet, this is groundwork", the issue is not a
+feature. It is a `chore` or a `spike`, and that is a legitimate thing to be.
+
+### A slice is not a pull request
+
+This distinction matters more than it sounds, because without it the size limits
+below quietly push work back into layer splits.
+
+| Unit | What it measures | Bounded by |
+|---|---|---|
+| **Slice** | value and planning | usefulness on its own |
+| **Pull request** | review | 400 lines, 8 files |
+
+A full-stack slice regularly exceeds 400 lines. That is not a rule violation and
+not a reason to cut the slice horizontally. It means the slice ships as **several
+pull requests**: API behind a flag, then the UI, then removing the flag. What
+ships together does not have to be reviewed together.
+
+Each pull request names the slice it belongs to. The slice is done when its
+`## Slice` sentence is true in production, not when the last PR merges.
+
+**Under time pressure the tempting move is the wrong one:** layers fit under 400
+lines comfortably, slices do not. If you find yourself cutting by layer to make a
+PR small enough, split the PR instead of the slice.
+
+### Work that is legitimately horizontal
+
+Not everything is a slice, and pretending otherwise produces theatre:
+
+- migrations, backfills, indexes
+- dependency upgrades
+- observability and logging
+- spikes
+
+These are `chore` or `spike` issues. They carry no `## Slice` section, and the
+rubric does not ask them for one.
+
+---
+
 ## 3. Tests
 
 **The human states the property, the model writes the test.** Never both in one

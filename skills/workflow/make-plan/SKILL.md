@@ -91,7 +91,22 @@ Not touched:
 - No new dependency
 ```
 
-### 7. Diff estimate
+### 6.5 Slice boundary — features only
+
+State plainly whether this plan **completes** the slice or only advances it:
+
+```
+Slice: #142 — Buchhaltung sieht überfällige Rechnungen
+Dieser Plan bringt den Slice voran (API + Statuswechsel).
+Offen bleibt: Anzeige in der Übersicht -> eigener PR, gleicher Slice.
+```
+
+If the plan would exceed 400 lines or eight files, **split the pull request, not
+the slice**. Cutting the slice by layer to make a PR small enough is the failure
+this section exists to prevent — layers fit comfortably under the limit and slices
+do not, which is exactly why the pressure points the wrong way. See AGENTS.md §2.5.
+
+## 7. Diff estimate
 
 One number. It is compared against the actual diff in review and by
 `tools/skill-eval/workflow_run.py`.
