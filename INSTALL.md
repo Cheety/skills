@@ -45,12 +45,28 @@ macht die Lücke sichtbar.
 ## Aktualisieren
 
 ```bash
-npx skills update setup-cheety-skills
+npx skills update            # alle installierten Skills, ohne Namen
 node .claude/skills/setup-cheety-skills/install.mjs --stack laravel --dry-run
 ```
 
-`skills update` frischt das Skill-Verzeichnis auf. Es fasst die Kopien in deinem
-Projekt **nicht** an — die gehören dir. Der `--dry-run` zeigt, was sich
+**Ohne Namen, das ist der Punkt.** Der Harness besteht aus zehn Skills, nicht
+aus einem: `setup-cheety-skills` trägt Installer, Profile, Werkzeuge und die
+Slash-Commands, die neun Workflow-Skills liegen als eigene Einträge daneben —
+`skills-lock.json` führt jeden mit eigenem Pfad und eigenem Hash.
+
+`npx skills update setup-cheety-skills` frischt deshalb genau einen davon auf.
+Das fällt nicht auf, sondern erzeugt eine halb aktualisierte Installation: die
+Commands unter `assets/commands/` sind neu, die Skills, auf die sie verweisen,
+alt. Wer einzeln aktualisieren will, nennt alle zehn:
+
+```bash
+npx skills update setup-cheety-skills harness-laravel \
+  write-issue split-spec make-plan implement-feature \
+  fix-bug write-tests write-migration code-review
+```
+
+`skills update` frischt die Skill-Verzeichnisse auf. Es fasst die Kopien in
+deinem Projekt **nicht** an — die gehören dir. Der `--dry-run` zeigt, was sich
 unterscheidet, `--force` übernimmt es.
 
 ## Zweiten Stack ergänzen
