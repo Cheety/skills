@@ -114,8 +114,36 @@ def check_actions_workflows(base: Path, root: Path, forge: str) -> list[str]:
         for name, job in (d.get("jobs") or {}).items():
             if "runs-on" not in job:
                 findings.append(f"{rel}: job `{name}` has no runs-on")
+            if forge == "forgejo":
+                findings += check_node_in_container(rel, name, job)
 
     return findings
+
+
+# Images known to carry a node binary. Everything else is assumed not to.
+NODE_CAPABLE = ("node", "runner-images", "catthehacker", "act-")
+
+
+def check_node_in_container(rel: Path, name: str, job: dict) -> list[str]:
+    """A JavaScript action needs node *inside the job container*.
+
+    GitHub mounts the runner's own node into the container, so this never comes
+    up there. Forgejo does not: the action is started with whatever `node` the
+    image provides, and a python/php/golang image provides none. The run then
+    dies with `exec: "node": executable file not found in $PATH` — at runtime,
+    on a green-looking workflow file.
+    """
+    image = str(((job.get("container") or {}) if isinstance(job.get("container"), dict)
+                 else {"image": job.get("container")}).get("image") or "")
+    if not image or any(m in image for m in NODE_CAPABLE):
+        return []
+    uses = [s["uses"] for s in (job.get("steps") or [])
+            if isinstance(s, dict) and s.get("uses") and not str(s["uses"]).startswith("docker://")]
+    if not uses:
+        return []
+    return [f"{rel}: job `{name}` runs in `{image}`, which carries no node, but uses "
+            f"the JavaScript action `{uses[0]}`. Forgejo does not provide node inside "
+            f"the container — use a node-based image or replace the action with a run step"]
 
 
 def check_actions_issue_templates(base: Path, root: Path, forge: str) -> list[str]:

@@ -17,7 +17,12 @@ jobs:
     # label of its own.
     runs-on: docker
     container:
-      image: python:3.12-slim
+      # A node image, although this job is pure Python: `checkout` is a
+      # JavaScript action, and Forgejo runs it with the `node` binary of THIS
+      # container. GitHub mounts its own node into the container, Forgejo does
+      # not — a python:3.12-slim image fails with
+      # `exec: "node": executable file not found in $PATH`.
+      image: node:22-bookworm
     timeout-minutes: 10
 
     steps:
@@ -25,6 +30,14 @@ jobs:
       # with the instance's DEFAULT_ACTIONS_URL and is therefore not portable.
       - name: Check out the sources
         uses: https://data.forgejo.org/actions/checkout@v4
+
+      # apt rather than pip: Debian's Python is externally managed, so
+      # `pip install pyyaml` aborts with `externally-managed-environment`.
+      # The harness tools need nothing beyond the standard library and PyYAML.
+      - name: Python for the harness tools
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends python3 python3-yaml
 
       # Every profile that is actually installed, rather than a hard-coded list:
       # the installer writes only the stack you chose.
@@ -46,9 +59,7 @@ jobs:
           done
 
       - name: Check the forge configuration
-        run: |
-          pip install --quiet pyyaml
-          python3 tools/forge_check.py .
+        run: python3 tools/forge_check.py .
 
       - name: Issue rubric
         run: |

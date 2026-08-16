@@ -37,7 +37,7 @@ English.
 
 ---
 
-## Forgejo and GitHub: five differences that fail silently
+## Forgejo and GitHub: six differences that fail silently
 
 Forgejo Actions is very close to GitHub Actions. That is exactly what makes the
 differences dangerous — a file copied over often *almost* works.
@@ -98,6 +98,29 @@ as is `validations.required`. Forgejo reads `.forgejo/issue_template/`, GitHub r
 A `config` file with `blank_issues_enabled: false` prevents issues without a template.
 That is not cosmetic here: an issue without acceptance criteria and non-goals will be
 guessed at during implementation.
+
+### 6. A JavaScript action needs node inside your container
+
+Every `uses:` action of the common kind is JavaScript. GitHub mounts the runner's own
+node into the job container, so nobody ever notices. Forgejo does not — the action is
+started with the `node` of the image you picked:
+
+```
+OCI runtime exec failed: exec: "node": executable file not found in $PATH
+⚙️ [runner]: exitcode '127': command not found
+```
+
+A `python:`, `php:`, `golang:` or plain `debian:` image produces exactly this, on a
+workflow file that is otherwise valid. Two ways out:
+
+- **Use a node-based image** and install what you actually need with apt. That is what
+  `harness.yaml` does: `node:22-bookworm` plus `python3 python3-yaml`. Note `apt`, not
+  `pip` — Debian's Python is externally managed and `pip install` aborts.
+- **Drop the action** where the toolchain image is not negotiable. `ci-python.yaml` keeps
+  `python:3.12` and clones with `git` in a `run:` step, which needs no node at all.
+
+`tools/forge_check.py` fails a Forgejo job that combines a non-node image with a `uses:`
+step, so the next one is caught before it runs rather than after.
 
 ### Services on GitHub-hosted runners
 

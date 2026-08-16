@@ -31,7 +31,26 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: https://data.forgejo.org/actions/checkout@v4
+      # Deliberately no `uses: …/checkout`: that is a JavaScript action, and
+      # Forgejo runs it with the `node` of this container — which a Python image
+      # does not have (`exec: "node": executable file not found in $PATH`).
+      # Installing node here just to clone is the more expensive of the two
+      # wrong answers, so the clone is done by hand. See FORGES.md.
+      - name: Check out the sources
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends git
+          git init -q .
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git"
+          # Token in the local config rather than in the URL or on the command
+          # line: it stays out of `ps` output and out of the remote URL.
+          git config --local "http.$GITHUB_SERVER_URL/.extraheader" \
+            "Authorization: basic $(printf 'x-access-token:%s' "$RUNNER_TOKEN" | base64 -w0)"
+          git fetch -q --depth 1 origin "$GITHUB_SHA"
+          git checkout -q FETCH_HEAD
+        env:
+          # Provided automatically by Forgejo for the duration of the run.
+          RUNNER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # The one line to adjust: replace with `pip install -e '.[dev]'`,
       # `uv sync --dev` or whatever this repository actually uses.
