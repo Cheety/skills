@@ -47,10 +47,18 @@ A question whose answer depends on another question in the same round belongs to
 the **next** round. Two rounds is the normal maximum for an `S` or `M` issue; a
 third means the issue is not ready — say so and go back to `write-issue`.
 
-The round is done when every entry of the issue's `## Offene Fragen` has an
-answer and the frontier below them is empty. Answers go into `## Annahmen`
-marked `← geklärt in Rückfrage`, so the ticket shows what was decided rather
-than guessed.
+The round is done when every entry of the issue's `## Offene Fragen` is settled
+and the frontier below them is empty. Settled has two shapes, and both are
+written down:
+
+- **Answered** — into `## Annahmen`, marked `← geklärt in Rückfrage (F2)`.
+- **Deferred** — the human says it is not this issue's call. Into
+  `## Nicht angefasst` with the reason, so the next plan meets it again.
+
+Deferring is a decision like any other, and it is the human's to make. What the
+round rules out is the third shape: an entry that quietly becomes "bleibt offen"
+somewhere in the plan. The issue's checkboxes stay the human's to tick — the
+hand-off comment shows the disposition, the issue body is left alone.
 
 ### Blast radius decides which uncertainty earns a question
 
