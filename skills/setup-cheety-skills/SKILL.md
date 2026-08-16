@@ -96,11 +96,18 @@ python3 tools/forge_check.py .
 ## Updating later
 
 ```bash
-npx skills update setup-cheety-skills
+npx skills update            # every installed skill — no name
 node .claude/skills/setup-cheety-skills/install.mjs --stack <stack> --dry-run
 ```
 
-`skills update` refreshes the skill directory. It does **not** touch the copies
+**No name, and that is the point.** The harness is ten skills, not one: this one
+carries the installer, the profiles, the tools and the slash commands, and the
+nine workflow skills sit beside it as their own entries — `skills-lock.json`
+lists each with its own path and hash. Naming this skill alone refreshes exactly
+this one, which does not fail, it half-updates: the commands under
+`assets/commands/` are new while the skills they point at are old.
+
+`skills update` refreshes the skill directories. It does **not** touch the copies
 already in your project — those are yours. The `--dry-run` shows what changed;
 `--force` takes it.
 
