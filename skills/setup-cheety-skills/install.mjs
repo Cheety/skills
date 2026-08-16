@@ -107,13 +107,36 @@ function putText(content, to) {
   writeFileSync(dest, content);
 }
 
-function putTree(from, toDir) {
+/**
+ * @param {string} from
+ * @param {string} toDir
+ * @param {(relativePath: string) => boolean} [accept] decides per source file
+ *   whether it belongs in the project; directories are always descended into.
+ */
+function putTree(from, toDir, accept) {
   for (const entry of readdirSync(from, { withFileTypes: true })) {
     const child = join(from, entry.name);
     const rel = join(toDir, entry.name);
-    if (entry.isDirectory()) putTree(child, rel);
-    else put(child, rel);
+    if (entry.isDirectory()) putTree(child, rel, accept);
+    else if (!accept || accept(rel)) put(child, rel);
   }
+}
+
+/**
+ * Every forge ships a CI pipeline per stack, but a project runs exactly one.
+ * Copying the whole forge directory would install all of them, and each would
+ * start failing against a project that does not have that toolchain — so the
+ * pipelines of the other stacks are filtered out here.
+ */
+function isForeignStackPipeline(relPath) {
+  const parts = relPath.split(/[\\/]/);
+  const name = parts.pop() ?? "";
+  // Only pipeline directories are filtered; issue templates keep their names.
+  if (!parts.includes("workflows") && !parts.includes("ci")) return false;
+  const match = /^(?:ci-)?(.+)\.ya?ml$/.exec(name);
+  if (!match) return false;
+  const base = match[1];
+  return available.includes(base) && base !== stack;
 }
 
 // ── 1. stack-independent core ───────────────────────────────────────────────
@@ -134,10 +157,10 @@ if (existsSync(join(src, "tooling"))) putTree(join(src, "tooling"), ".");
 // ── 3. forge integration ────────────────────────────────────────────────────
 
 if (forge === "forgejo" || forge === "github") {
-  putTree(join(ASSETS, forge), `.${forge}`);
+  putTree(join(ASSETS, forge), `.${forge}`, (rel) => !isForeignStackPipeline(rel));
   put(join(ASSETS, "FORGES.md"), "FORGES.md");
 } else if (forge === "gitlab") {
-  putTree(join(ASSETS, "gitlab", "ci"), ".gitlab/ci");
+  putTree(join(ASSETS, "gitlab", "ci"), ".gitlab/ci", (rel) => !isForeignStackPipeline(rel));
   putTree(join(ASSETS, "gitlab", "issue_templates"), ".gitlab/issue_templates");
   putTree(join(ASSETS, "gitlab", "merge_request_templates"), ".gitlab/merge_request_templates");
   put(join(ASSETS, "FORGES.md"), "FORGES.md");

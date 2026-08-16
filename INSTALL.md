@@ -26,7 +26,9 @@ Installer entsprechend `--stack typescript` bzw. `--stack python`.
 
 **Forge statt `github`:** `--forge forgejo` (Vorgabe), `--forge gitlab` oder
 `--forge none`. Geschrieben wird genau eine: Workflows, Issue-Vorlagen und die
-PR-/MR-Vorlage. Was sich zwischen den Forges still unterscheidet, steht in
+PR-/MR-Vorlage. Von den CI-Pipelines landet nur die des gewaehlten Stacks im
+Projekt, dazu `harness` — die Pipelines der anderen Stacks wuerden gegen ein
+Projekt laufen, das deren Toolchain gar nicht hat. Was sich zwischen den Forges still unterscheidet, steht in
 `FORGES.md`; `python3 tools/forge_check.py .` prüft es mechanisch.
 
 ### Warum zwei Schritte
