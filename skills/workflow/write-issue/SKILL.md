@@ -266,8 +266,13 @@ Verwandt:      #...
 Blockiert von: #...   ← nur wenn etwas blockiert
 
 ## Offene Fragen
-- [ ] ...   ← muss vor Umsetzungsbeginn geklärt sein
+- [ ] ...   ← wird in der Rückfragerunde von make-plan geklärt
 ```
+
+`## Offene Fragen` has an addressee: the question round at the start of
+`make-plan` puts every entry to a human before a line of the plan is written.
+Leaving a question here is therefore a legitimate hand-over, not a gap — what
+is illegitimate is inventing an answer to make the issue look finished.
 
 ## Self-check before handing over
 
